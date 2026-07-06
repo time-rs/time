@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use rstest::rstest;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::time;
-use time::{Duration, Result, Time};
+use time::{Result, SignedDuration, Time};
 
 #[rstest]
 #[case(1, 2, 3, time!(1:02:03))]
@@ -170,7 +170,7 @@ fn nanosecond(#[case] nano: u32) -> Result<()> {
 #[case(time!(18:00), Time::MIDNIGHT, 6.hours())]
 #[case(time!(23:00), time!(1:00), 2.hours())]
 #[case(time!(12:30), time!(14:00), 90.minutes())]
-fn duration_until(#[case] start: Time, #[case] end: Time, #[case] expected: Duration) {
+fn duration_until(#[case] start: Time, #[case] end: Time, #[case] expected: SignedDuration) {
     assert_eq!(start.duration_until(end), expected);
 }
 
@@ -178,7 +178,7 @@ fn duration_until(#[case] start: Time, #[case] end: Time, #[case] expected: Dura
 #[case(Time::MIDNIGHT, time!(18:00), 6.hours())]
 #[case(time!(1:00), time!(23:00), 2.hours())]
 #[case(time!(14:00), time!(12:30), 90.minutes())]
-fn duration_since(#[case] end: Time, #[case] start: Time, #[case] expected: Duration) {
+fn duration_since(#[case] end: Time, #[case] start: Time, #[case] expected: SignedDuration) {
     assert_eq!(end.duration_since(start), expected);
 }
 
@@ -296,7 +296,7 @@ fn truncate_to_microsecond(#[case] time: Time, #[case] expected: Time) {
 #[case(time!(0:00), 1.minutes(), time!(0:01))]
 #[case(time!(0:00), 1.hours(), time!(1:00))]
 #[case(time!(0:00), 1.days(), time!(0:00))]
-fn add_duration(#[case] input: Time, #[case] duration: Duration, #[case] expected: Time) {
+fn add_duration(#[case] input: Time, #[case] duration: SignedDuration, #[case] expected: Time) {
     assert_eq!(input + duration, expected);
 }
 
@@ -305,7 +305,11 @@ fn add_duration(#[case] input: Time, #[case] duration: Duration, #[case] expecte
 #[case(time!(0:00), 1.minutes(), time!(0:01:00))]
 #[case(time!(0:00), 1.hours(), time!(1:00:00))]
 #[case(time!(0:00), 1.days(), time!(0:00))]
-fn add_assign_duration(#[case] mut time: Time, #[case] duration: Duration, #[case] expected: Time) {
+fn add_assign_duration(
+    #[case] mut time: Time,
+    #[case] duration: SignedDuration,
+    #[case] expected: Time,
+) {
     time += duration;
     assert_eq!(time, expected);
 }
@@ -316,7 +320,7 @@ fn add_assign_duration(#[case] mut time: Time, #[case] duration: Duration, #[cas
 #[case(time!(0:00), 1.minutes(), time!(23:59))]
 #[case(time!(0:00), 1.hours(), time!(23:00))]
 #[case(time!(0:00), 1.days(), time!(0:00))]
-fn sub_duration(#[case] time: Time, #[case] duration: Duration, #[case] expected: Time) {
+fn sub_duration(#[case] time: Time, #[case] duration: SignedDuration, #[case] expected: Time) {
     assert_eq!(time - duration, expected);
 }
 
@@ -325,7 +329,11 @@ fn sub_duration(#[case] time: Time, #[case] duration: Duration, #[case] expected
 #[case(time!(0:00), 1.minutes(), time!(23:59))]
 #[case(time!(0:00), 1.hours(), time!(23:00))]
 #[case(time!(0:00), 1.days(), time!(0:00))]
-fn sub_assign_duration(#[case] mut time: Time, #[case] duration: Duration, #[case] expected: Time) {
+fn sub_assign_duration(
+    #[case] mut time: Time,
+    #[case] duration: SignedDuration,
+    #[case] expected: Time,
+) {
     time -= duration;
     assert_eq!(time, expected);
 }
@@ -391,7 +399,7 @@ fn sub_assign_std_duration(
 #[case(time!(0:00), time!(0:00), 0.seconds())]
 #[case(time!(1:00), time!(0:00), 1.hours())]
 #[case(time!(1:00), time!(0:00:01), 59.minutes() + 59.seconds())]
-fn sub_time(#[case] a: Time, #[case] b: Time, #[case] expected: Duration) {
+fn sub_time(#[case] a: Time, #[case] b: Time, #[case] expected: SignedDuration) {
     assert_eq!(a - b, expected);
 }
 
@@ -419,6 +427,6 @@ fn ordering_lexico_endianness(#[case] higher: Time, #[case] lower: Time) {
 #[rstest]
 #[case(time!(0:00), time!(01:00:00.1), (-3600.1).seconds())]
 #[case(time!(0:00), time!(23:59:59.999_999_999), (-86_399.999_999_999).seconds())]
-fn issue_481(#[case] a: Time, #[case] b: Time, #[case] expected: Duration) {
+fn issue_481(#[case] a: Time, #[case] b: Time, #[case] expected: SignedDuration) {
     assert_eq!(a - b, expected);
 }

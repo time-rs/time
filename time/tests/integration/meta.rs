@@ -23,13 +23,13 @@ use time::format_description::{BorrowedFormatItem, Component, modifier, well_kno
 use time::formatting::Formattable;
 use time::parsing::{Parsable, Parsed};
 use time::{
-    Date, Duration, Error, Month, OffsetDateTime, PlainDateTime, Time, UtcDateTime, UtcOffset,
-    Weekday, error, ext,
+    Date, Error, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, UtcDateTime,
+    UtcOffset, Weekday, error, ext,
 };
 
 #[rstest]
 #[case(PhantomData::<Date>, 4)]
-#[case(PhantomData::<Duration>, 8)]
+#[case(PhantomData::<SignedDuration>, 8)]
 #[case(PhantomData::<OffsetDateTime>, 4)]
 #[case(PhantomData::<PlainDateTime>, 4)]
 #[case(PhantomData::<UtcDateTime>, 4)]
@@ -98,7 +98,7 @@ fn alignment<T>(#[case] _type: PhantomData<T>, #[case] expected: usize) {
 
 #[rstest]
 #[case(PhantomData::<Date>, 4, 4)]
-#[case(PhantomData::<Duration>, 16, 16)]
+#[case(PhantomData::<SignedDuration>, 16, 16)]
 #[case(PhantomData::<OffsetDateTime>, 16, 16)]
 #[case(PhantomData::<PlainDateTime>, 12, 12)]
 #[case(PhantomData::<UtcDateTime>, 12, 12)]
@@ -197,9 +197,9 @@ macro_rules! assert_impl {
 }
 
 assert_impl! { @'a; Date:
-    Add<Duration, Output = Date>,
+    Add<SignedDuration, Output = Date>,
     Add<StdDuration, Output = Date>,
-    AddAssign<Duration>,
+    AddAssign<SignedDuration>,
     AddAssign<StdDuration>,
     Arbitrary,
     Clone,
@@ -211,10 +211,10 @@ assert_impl! { @'a; Date:
     PartialEq<Date>,
     PartialOrd<Date>,
     Serialize,
-    Sub<Date, Output = Duration>,
-    Sub<Duration, Output = Date>,
+    Sub<Date, Output = SignedDuration>,
+    Sub<SignedDuration, Output = Date>,
     Sub<StdDuration, Output = Date>,
-    SubAssign<Duration>,
+    SubAssign<SignedDuration>,
     SubAssign<StdDuration>,
     TryFrom<Parsed, Error = error::TryFromParsed>,
     Copy,
@@ -225,26 +225,26 @@ assert_impl! { @'a; Date:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { @'a; Duration:
-    Add<Duration, Output = Duration>,
-    Add<StdDuration, Output = Duration>,
-    AddAssign<Duration>,
+assert_impl! { @'a; SignedDuration:
+    Add<SignedDuration, Output = SignedDuration>,
+    Add<StdDuration, Output = SignedDuration>,
+    AddAssign<SignedDuration>,
     AddAssign<StdDuration>,
     Arbitrary,
     Clone,
     Debug,
     Default,
     Deserialize<'a>,
-    Div<Duration, Output = f64>,
+    Div<SignedDuration, Output = f64>,
     Div<StdDuration, Output = f64>,
-    Div<f32, Output = Duration>,
-    Div<f64, Output = Duration>,
-    Div<i16, Output = Duration>,
-    Div<i32, Output = Duration>,
-    Div<i8, Output = Duration>,
-    Div<u16, Output = Duration>,
-    Div<u32, Output = Duration>,
-    Div<u8, Output = Duration>,
+    Div<f32, Output = SignedDuration>,
+    Div<f64, Output = SignedDuration>,
+    Div<i16, Output = SignedDuration>,
+    Div<i32, Output = SignedDuration>,
+    Div<i8, Output = SignedDuration>,
+    Div<u16, Output = SignedDuration>,
+    Div<u32, Output = SignedDuration>,
+    Div<u8, Output = SignedDuration>,
     DivAssign<f32>,
     DivAssign<f64>,
     DivAssign<i16>,
@@ -254,14 +254,14 @@ assert_impl! { @'a; Duration:
     DivAssign<u32>,
     DivAssign<u8>,
     Hash,
-    Mul<f32, Output = Duration>,
-    Mul<f64, Output = Duration>,
-    Mul<i16, Output = Duration>,
-    Mul<i32, Output = Duration>,
-    Mul<i8, Output = Duration>,
-    Mul<u16, Output = Duration>,
-    Mul<u32, Output = Duration>,
-    Mul<u8, Output = Duration>,
+    Mul<f32, Output = SignedDuration>,
+    Mul<f64, Output = SignedDuration>,
+    Mul<i16, Output = SignedDuration>,
+    Mul<i32, Output = SignedDuration>,
+    Mul<i8, Output = SignedDuration>,
+    Mul<u16, Output = SignedDuration>,
+    Mul<u32, Output = SignedDuration>,
+    Mul<u8, Output = SignedDuration>,
     MulAssign<f32>,
     MulAssign<f64>,
     MulAssign<i16>,
@@ -270,19 +270,19 @@ assert_impl! { @'a; Duration:
     MulAssign<u16>,
     MulAssign<u32>,
     MulAssign<u8>,
-    Neg<Output = Duration>,
+    Neg<Output = SignedDuration>,
     Ord,
-    PartialEq<Duration>,
+    PartialEq<SignedDuration>,
     PartialEq<StdDuration>,
-    PartialOrd<Duration>,
+    PartialOrd<SignedDuration>,
     PartialOrd<StdDuration>,
     Serialize,
-    Sub<Duration, Output = Duration>,
-    Sub<StdDuration, Output = Duration>,
-    SubAssign<Duration>,
+    Sub<SignedDuration, Output = SignedDuration>,
+    Sub<StdDuration, Output = SignedDuration>,
+    SubAssign<SignedDuration>,
     SubAssign<StdDuration>,
-    Sum<&'a Duration>,
-    Sum<Duration>,
+    Sum<&'a SignedDuration>,
+    Sum<SignedDuration>,
     TryFrom<StdDuration, Error = error::ConversionRange>,
     Copy,
     Eq,
@@ -293,9 +293,9 @@ assert_impl! { @'a; Duration:
     UnwindSafe,
 }
 assert_impl! { #[expect(deprecated)] Instant:
-    Add<Duration, Output = Instant>,
+    Add<SignedDuration, Output = Instant>,
     Add<StdDuration, Output = Instant>,
-    AddAssign<Duration>,
+    AddAssign<SignedDuration>,
     AddAssign<StdDuration>,
     AsRef<StdInstant>,
     Borrow<StdInstant>,
@@ -308,11 +308,11 @@ assert_impl! { #[expect(deprecated)] Instant:
     PartialEq<StdInstant>,
     PartialOrd<Instant>,
     PartialOrd<StdInstant>,
-    Sub<Duration, Output = Instant>,
+    Sub<SignedDuration, Output = Instant>,
     Sub<StdDuration, Output = Instant>,
-    Sub<Instant, Output = Duration>,
-    Sub<StdInstant, Output = Duration>,
-    SubAssign<Duration>,
+    Sub<Instant, Output = SignedDuration>,
+    Sub<StdInstant, Output = SignedDuration>,
+    SubAssign<SignedDuration>,
     SubAssign<StdDuration>,
     Copy,
     Eq,
@@ -323,9 +323,9 @@ assert_impl! { #[expect(deprecated)] Instant:
     UnwindSafe,
 }
 assert_impl! { @'a; OffsetDateTime:
-    Add<Duration, Output = OffsetDateTime>,
+    Add<SignedDuration, Output = OffsetDateTime>,
     Add<StdDuration, Output = OffsetDateTime>,
-    AddAssign<Duration>,
+    AddAssign<SignedDuration>,
     AddAssign<StdDuration>,
     Arbitrary,
     Clone,
@@ -340,11 +340,11 @@ assert_impl! { @'a; OffsetDateTime:
     PartialOrd<OffsetDateTime>,
     PartialOrd<SystemTime>,
     Serialize,
-    Sub<OffsetDateTime, Output = Duration>,
-    Sub<SystemTime, Output = Duration>,
-    Sub<Duration, Output = OffsetDateTime>,
+    Sub<OffsetDateTime, Output = SignedDuration>,
+    Sub<SystemTime, Output = SignedDuration>,
+    Sub<SignedDuration, Output = OffsetDateTime>,
     Sub<StdDuration, Output = OffsetDateTime>,
-    SubAssign<Duration>,
+    SubAssign<SignedDuration>,
     SubAssign<StdDuration>,
     TryFrom<Parsed, Error = error::TryFromParsed>,
     Copy,
@@ -356,9 +356,9 @@ assert_impl! { @'a; OffsetDateTime:
     UnwindSafe,
 }
 assert_impl! { @'a; PlainDateTime:
-    Add<Duration, Output = PlainDateTime>,
+    Add<SignedDuration, Output = PlainDateTime>,
     Add<StdDuration, Output = PlainDateTime>,
-    AddAssign<Duration>,
+    AddAssign<SignedDuration>,
     AddAssign<StdDuration>,
     Arbitrary,
     Clone,
@@ -370,10 +370,10 @@ assert_impl! { @'a; PlainDateTime:
     PartialEq<PlainDateTime>,
     PartialOrd<PlainDateTime>,
     Serialize,
-    Sub<Duration, Output = PlainDateTime>,
+    Sub<SignedDuration, Output = PlainDateTime>,
     Sub<StdDuration, Output = PlainDateTime>,
     Sub<PlainDateTime>,
-    SubAssign<Duration>,
+    SubAssign<SignedDuration>,
     SubAssign<StdDuration>,
     TryFrom<Parsed, Error = error::TryFromParsed>,
     Copy,
@@ -385,9 +385,9 @@ assert_impl! { @'a; PlainDateTime:
     UnwindSafe,
 }
 assert_impl! { @'a; UtcDateTime:
-    Add<Duration, Output = UtcDateTime>,
+    Add<SignedDuration, Output = UtcDateTime>,
     Add<StdDuration, Output = UtcDateTime>,
-    AddAssign<Duration>,
+    AddAssign<SignedDuration>,
     AddAssign<StdDuration>,
     Arbitrary,
     Clone,
@@ -403,11 +403,11 @@ assert_impl! { @'a; UtcDateTime:
     PartialOrd<OffsetDateTime>,
     PartialOrd<SystemTime>,
     Serialize,
-    Sub<Duration, Output = UtcDateTime>,
+    Sub<SignedDuration, Output = UtcDateTime>,
     Sub<StdDuration, Output = UtcDateTime>,
     Sub<UtcDateTime>,
     Sub<OffsetDateTime>,
-    SubAssign<Duration>,
+    SubAssign<SignedDuration>,
     SubAssign<StdDuration>,
     TryFrom<Parsed, Error = error::TryFromParsed>,
     Copy,
@@ -419,9 +419,9 @@ assert_impl! { @'a; UtcDateTime:
     UnwindSafe,
 }
 assert_impl! { @'a; Time:
-    Add<Duration, Output = Time>,
+    Add<SignedDuration, Output = Time>,
     Add<StdDuration, Output = Time>,
-    AddAssign<Duration>,
+    AddAssign<SignedDuration>,
     AddAssign<StdDuration>,
     Arbitrary,
     Clone,
@@ -433,10 +433,10 @@ assert_impl! { @'a; Time:
     PartialEq<Time>,
     PartialOrd<Time>,
     Serialize,
-    Sub<Duration, Output = Time>,
+    Sub<SignedDuration, Output = Time>,
     Sub<StdDuration, Output = Time>,
-    Sub<Time, Output = Duration>,
-    SubAssign<Duration>,
+    Sub<Time, Output = SignedDuration>,
+    SubAssign<SignedDuration>,
     SubAssign<StdDuration>,
     TryFrom<Parsed, Error = error::TryFromParsed>,
     Copy,
@@ -1347,7 +1347,7 @@ assert_impl! { #[expect(deprecated)] modifier::YearRepr:
 }
 assert_impl! { StandardRand08:
     DistributionRand08<Date>,
-    DistributionRand08<Duration>,
+    DistributionRand08<SignedDuration>,
     DistributionRand08<OffsetDateTime>,
     DistributionRand08<UtcDateTime>,
     DistributionRand08<PlainDateTime>,
@@ -1358,7 +1358,7 @@ assert_impl! { StandardRand08:
 }
 assert_impl! { StandardUniformRand09:
     DistributionRand09<Date>,
-    DistributionRand09<Duration>,
+    DistributionRand09<SignedDuration>,
     DistributionRand09<OffsetDateTime>,
     DistributionRand09<UtcDateTime>,
     DistributionRand09<PlainDateTime>,
@@ -1368,57 +1368,57 @@ assert_impl! { StandardUniformRand09:
     DistributionRand09<Weekday>,
 }
 assert_impl! { StdDuration:
-    Add<Duration, Output = Duration>,
-    AddAssign<Duration>,
-    Div<Duration, Output = f64>,
-    PartialEq<Duration>,
-    PartialOrd<Duration>,
-    Sub<Duration, Output = Duration>,
-    SubAssign<Duration>,
-    TryFrom<Duration>,
+    Add<SignedDuration, Output = SignedDuration>,
+    AddAssign<SignedDuration>,
+    Div<SignedDuration, Output = f64>,
+    PartialEq<SignedDuration>,
+    PartialOrd<SignedDuration>,
+    Sub<SignedDuration, Output = SignedDuration>,
+    SubAssign<SignedDuration>,
+    TryFrom<SignedDuration>,
 }
 assert_impl! { #[expect(deprecated)] StdInstant:
-    Add<Duration, Output = StdInstant>,
-    AddAssign<Duration>,
-    Sub<Duration, Output = StdInstant>,
-    SubAssign<Duration>,
+    Add<SignedDuration, Output = StdInstant>,
+    AddAssign<SignedDuration>,
+    Sub<SignedDuration, Output = StdInstant>,
+    SubAssign<SignedDuration>,
     PartialEq<Instant>,
     PartialOrd<Instant>,
     From<Instant>,
     Sub<Instant>,
 }
 assert_impl! { SystemTime:
-    Add<Duration, Output = SystemTime>,
-    AddAssign<Duration>,
-    Sub<Duration, Output = SystemTime>,
-    SubAssign<Duration>,
+    Add<SignedDuration, Output = SystemTime>,
+    AddAssign<SignedDuration>,
+    Sub<SignedDuration, Output = SystemTime>,
+    SubAssign<SignedDuration>,
     From<OffsetDateTime>,
     PartialEq<OffsetDateTime>,
     PartialOrd<OffsetDateTime>,
     Sub<OffsetDateTime>,
 }
 assert_impl! { i8:
-    Mul<Duration>,
+    Mul<SignedDuration>,
 }
 assert_impl! { i16:
-    Mul<Duration>,
+    Mul<SignedDuration>,
 }
 assert_impl! { i32:
-    Mul<Duration>,
+    Mul<SignedDuration>,
 }
 assert_impl! { u8:
-    Mul<Duration>,
+    Mul<SignedDuration>,
     From<Month>,
 }
 assert_impl! { u16:
-    Mul<Duration>,
+    Mul<SignedDuration>,
 }
 assert_impl! { u32:
-    Mul<Duration>,
+    Mul<SignedDuration>,
 }
 assert_impl! { f32:
-    Mul<Duration>,
+    Mul<SignedDuration>,
 }
 assert_impl! { f64:
-    Mul<Duration>,
+    Mul<SignedDuration>,
 }

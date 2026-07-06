@@ -1,4 +1,4 @@
-//! The [`Duration`] struct and its associated `impl`s.
+//! The [`SignedDuration`] struct and its associated `impl`s.
 
 use core::cmp::Ordering;
 use core::fmt;
@@ -35,19 +35,19 @@ pub(crate) enum Padding {
     Optimize,
 }
 
-/// The type of the `nanosecond` field of `Duration`.
+/// The type of the `nanosecond` field of `SignedDuration`.
 type Nanoseconds =
     ri32<{ -Nanosecond::per_t::<i32>(Second) + 1 }, { Nanosecond::per_t::<i32>(Second) - 1 }>;
 
 /// A span of time with nanosecond precision.
 ///
-/// Each `Duration` is composed of a whole number of seconds and a fractional part represented in
-/// nanoseconds.
+/// Each `SignedDuration` is composed of a whole number of seconds and a fractional part represented
+/// in nanoseconds.
 ///
 /// This implementation allows for negative durations, unlike [`core::time::Duration`].
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct Duration {
+pub struct SignedDuration {
     /// Number of whole seconds.
     seconds: i64,
     /// Number of nanoseconds within the second. The sign always matches the `seconds` field.
@@ -56,33 +56,33 @@ pub struct Duration {
     _padding: Padding,
 }
 
-impl fmt::Debug for Duration {
+impl fmt::Debug for SignedDuration {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Duration")
+        f.debug_struct("SignedDuration")
             .field("seconds", &self.seconds)
             .field("nanoseconds", &self.nanoseconds)
             .finish()
     }
 }
 
-impl PartialEq for Duration {
+impl PartialEq for SignedDuration {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.as_int_for_equality() == other.as_int_for_equality()
     }
 }
 
-impl Eq for Duration {}
+impl Eq for SignedDuration {}
 
-impl PartialOrd for Duration {
+impl PartialOrd for SignedDuration {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Duration {
+impl Ord for SignedDuration {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         self.seconds
@@ -91,7 +91,7 @@ impl Ord for Duration {
     }
 }
 
-impl Hash for Duration {
+impl Hash for SignedDuration {
     fn hash<H>(&self, state: &mut H)
     where
         H: Hasher,
@@ -100,15 +100,15 @@ impl Hash for Duration {
     }
 }
 
-impl Default for Duration {
+impl Default for SignedDuration {
     #[inline]
     fn default() -> Self {
         Self::ZERO
     }
 }
 
-/// This is adapted from the [`std` implementation][std], which uses mostly bit
-/// operations to ensure the highest precision:
+/// This is adapted from the [`std` implementation][std], which uses mostly bit operations to ensure
+/// the highest precision:
 ///
 /// Changes from `std` are marked and explained below.
 ///
@@ -231,7 +231,7 @@ macro_rules! try_from_secs {
     }};
 }
 
-impl Duration {
+impl SignedDuration {
     #[inline]
     const fn as_int_for_equality(self) -> i128 {
         // Safety: There are no padding bytes that are not permitted to be read.
@@ -241,72 +241,72 @@ impl Duration {
     /// Equivalent to `0.seconds()`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::ZERO, 0.seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::ZERO, 0.seconds());
     /// ```
     pub const ZERO: Self = Self::seconds(0);
 
     /// Equivalent to `1.nanoseconds()`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::NANOSECOND, 1.nanoseconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::NANOSECOND, 1.nanoseconds());
     /// ```
     pub const NANOSECOND: Self = Self::nanoseconds(1);
 
     /// Equivalent to `1.microseconds()`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::MICROSECOND, 1.microseconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::MICROSECOND, 1.microseconds());
     /// ```
     pub const MICROSECOND: Self = Self::microseconds(1);
 
     /// Equivalent to `1.milliseconds()`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::MILLISECOND, 1.milliseconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::MILLISECOND, 1.milliseconds());
     /// ```
     pub const MILLISECOND: Self = Self::milliseconds(1);
 
     /// Equivalent to `1.seconds()`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::SECOND, 1.seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::SECOND, 1.seconds());
     /// ```
     pub const SECOND: Self = Self::seconds(1);
 
     /// Equivalent to `1.minutes()`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::MINUTE, 1.minutes());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::MINUTE, 1.minutes());
     /// ```
     pub const MINUTE: Self = Self::minutes(1);
 
     /// Equivalent to `1.hours()`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::HOUR, 1.hours());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::HOUR, 1.hours());
     /// ```
     pub const HOUR: Self = Self::hours(1);
 
     /// Equivalent to `1.days()`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::DAY, 1.days());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::DAY, 1.days());
     /// ```
     pub const DAY: Self = Self::days(1);
 
     /// Equivalent to `1.weeks()`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::WEEK, 1.weeks());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::WEEK, 1.weeks());
     /// ```
     pub const WEEK: Self = Self::weeks(1);
 
@@ -372,8 +372,9 @@ impl Duration {
         }
     }
 
-    /// Convert the existing `Duration` to a `std::time::Duration` and its sign. This returns a
-    /// [`std::time::Duration`] and does not saturate the returned value (unlike [`Duration::abs`]).
+    /// Convert the existing `SignedDuration` to a `std::time::Duration` and its sign. This returns
+    /// a [`std::time::Duration`] and does not saturate the returned value (unlike
+    /// [`SignedDuration::abs`]).
     ///
     /// ```rust
     /// # use time::ext::{NumericalDuration, NumericalStdDuration};
@@ -389,7 +390,7 @@ impl Duration {
         )
     }
 
-    /// Create a new `Duration` without checking the validity of the components.
+    /// Create a new `SignedDuration` without checking the validity of the components.
     ///
     /// # Safety
     ///
@@ -407,7 +408,7 @@ impl Duration {
         )
     }
 
-    /// Create a new `Duration` without checking the validity of the components.
+    /// Create a new `SignedDuration` without checking the validity of the components.
     #[inline]
     #[track_caller]
     pub(crate) const fn new_ranged_unchecked(seconds: i64, nanoseconds: Nanoseconds) -> Self {
@@ -424,14 +425,14 @@ impl Duration {
         }
     }
 
-    /// Create a new `Duration` with the provided seconds and nanoseconds. If nanoseconds is at
-    /// least ±10<sup>9</sup>, it will wrap to the number of seconds.
+    /// Create a new `SignedDuration` with the provided seconds and nanoseconds. If nanoseconds is
+    /// at least ±10<sup>9</sup>, it will wrap to the number of seconds.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::new(1, 0), 1.seconds());
-    /// assert_eq!(Duration::new(-1, 0), (-1).seconds());
-    /// assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::new(1, 0), 1.seconds());
+    /// assert_eq!(SignedDuration::new(-1, 0), (-1).seconds());
+    /// assert_eq!(SignedDuration::new(1, 2_000_000_000), 3.seconds());
     /// ```
     ///
     /// # Panics
@@ -442,7 +443,7 @@ impl Duration {
     pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
         seconds = seconds
             .checked_add(nanoseconds as i64 / Nanosecond::per_t::<i64>(Second))
-            .expect("overflow constructing `time::Duration`");
+            .expect("overflow constructing `time::SignedDuration`");
         nanoseconds %= Nanosecond::per_t::<i32>(Second);
 
         if seconds > 0 && nanoseconds < 0 {
@@ -459,7 +460,7 @@ impl Duration {
         unsafe { Self::new_unchecked(seconds, nanoseconds) }
     }
 
-    /// Create a new `Duration` with the provided seconds and nanoseconds.
+    /// Create a new `SignedDuration` with the provided seconds and nanoseconds.
     #[inline]
     pub(crate) const fn new_ranged(mut seconds: i64, mut nanoseconds: Nanoseconds) -> Self {
         if seconds > 0 && nanoseconds.get() < 0 {
@@ -483,12 +484,12 @@ impl Duration {
         Self::new_ranged_unchecked(seconds, nanoseconds)
     }
 
-    /// Create a new `Duration` with the given number of weeks. Equivalent to
-    /// `Duration::seconds(weeks * 604_800)`.
+    /// Create a new `SignedDuration` with the given number of weeks. Equivalent to
+    /// `SignedDuration::seconds(weeks * 604_800)`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::weeks(1), 604_800.seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::weeks(1), 604_800.seconds());
     /// ```
     ///
     /// # Panics
@@ -500,16 +501,16 @@ impl Duration {
         Self::seconds(
             weeks
                 .checked_mul(Second::per_t(Week))
-                .expect("overflow constructing `time::Duration`"),
+                .expect("overflow constructing `time::SignedDuration`"),
         )
     }
 
-    /// Create a new `Duration` with the given number of days. Equivalent to
-    /// `Duration::seconds(days * 86_400)`.
+    /// Create a new `SignedDuration` with the given number of days. Equivalent to
+    /// `SignedDuration::seconds(days * 86_400)`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::days(1), 86_400.seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::days(1), 86_400.seconds());
     /// ```
     ///
     /// # Panics
@@ -520,16 +521,16 @@ impl Duration {
     pub const fn days(days: i64) -> Self {
         Self::seconds(
             days.checked_mul(Second::per_t(Day))
-                .expect("overflow constructing `time::Duration`"),
+                .expect("overflow constructing `time::SignedDuration`"),
         )
     }
 
-    /// Create a new `Duration` with the given number of hours. Equivalent to
-    /// `Duration::seconds(hours * 3_600)`.
+    /// Create a new `SignedDuration` with the given number of hours. Equivalent to
+    /// `SignedDuration::seconds(hours * 3_600)`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::hours(1), 3_600.seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::hours(1), 3_600.seconds());
     /// ```
     ///
     /// # Panics
@@ -541,16 +542,16 @@ impl Duration {
         Self::seconds(
             hours
                 .checked_mul(Second::per_t(Hour))
-                .expect("overflow constructing `time::Duration`"),
+                .expect("overflow constructing `time::SignedDuration`"),
         )
     }
 
-    /// Create a new `Duration` with the given number of minutes. Equivalent to
-    /// `Duration::seconds(minutes * 60)`.
+    /// Create a new `SignedDuration` with the given number of minutes. Equivalent to
+    /// `SignedDuration::seconds(minutes * 60)`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::minutes(1), 60.seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::minutes(1), 60.seconds());
     /// ```
     ///
     /// # Panics
@@ -562,22 +563,22 @@ impl Duration {
         Self::seconds(
             minutes
                 .checked_mul(Second::per_t(Minute))
-                .expect("overflow constructing `time::Duration`"),
+                .expect("overflow constructing `time::SignedDuration`"),
         )
     }
 
-    /// Create a new `Duration` with the given number of seconds.
+    /// Create a new `SignedDuration` with the given number of seconds.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::seconds(1), 1_000.milliseconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::seconds(1), 1_000.milliseconds());
     /// ```
     #[inline]
     pub const fn seconds(seconds: i64) -> Self {
         Self::new_ranged_unchecked(seconds, Nanoseconds::new_static::<0>())
     }
 
-    /// Create a new `Duration` from the specified number of seconds represented as `f64`.
+    /// Create a new `SignedDuration` from the specified number of seconds represented as `f64`.
     ///
     /// If the value is `NaN` or out of bounds, an error is returned that can be handled in the
     /// desired manner by the caller.
@@ -595,7 +596,7 @@ impl Duration {
         )
     }
 
-    /// Create a new `Duration` from the specified number of seconds represented as `f32`.
+    /// Create a new `SignedDuration` from the specified number of seconds represented as `f32`.
     ///
     /// If the value is `NaN` or out of bounds, an error is returned that can be handled in the
     /// desired manner by the caller.
@@ -613,76 +614,80 @@ impl Duration {
         )
     }
 
-    /// Creates a new `Duration` from the specified number of seconds represented as `f64`.
+    /// Creates a new `SignedDuration` from the specified number of seconds represented as `f64`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
-    /// assert_eq!(Duration::seconds_f64(-0.5), (-0.5).seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::seconds_f64(0.5), 0.5.seconds());
+    /// assert_eq!(SignedDuration::seconds_f64(-0.5), (-0.5).seconds());
     /// ```
     ///
     /// # Panics
     ///
-    /// This may panic if `seconds` is `NaN` or overflows the representable range of `Duration`.
+    /// This may panic if `seconds` is `NaN` or overflows the representable range of
+    /// `SignedDuration`.
     #[inline]
     #[track_caller]
     pub const fn seconds_f64(seconds: f64) -> Self {
         match Self::try_seconds_f64(seconds) {
             Ok(duration) => duration,
             Err(FloatConstructorError::Nan) => {
-                panic!("passed NaN to `time::Duration::seconds_f64`");
+                panic!("passed NaN to `time::SignedDuration::seconds_f64`");
             }
             Err(FloatConstructorError::NegOverflow | FloatConstructorError::PosOverflow) => {
-                panic!("overflow constructing `time::Duration`");
+                panic!("overflow constructing `time::SignedDuration`");
             }
         }
     }
 
-    /// Creates a new `Duration` from the specified number of seconds represented as `f32`.
+    /// Creates a new `SignedDuration` from the specified number of seconds represented as `f32`.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::seconds_f32(0.5), 0.5.seconds());
-    /// assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::seconds_f32(0.5), 0.5.seconds());
+    /// assert_eq!(SignedDuration::seconds_f32(-0.5), (-0.5).seconds());
     /// ```
     ///
     /// # Panics
     ///
-    /// This may panic if `seconds` is `NaN` or overflows the representable range of `Duration`.
+    /// This may panic if `seconds` is `NaN` or overflows the representable range of
+    /// `SignedDuration`.
     #[inline]
     #[track_caller]
     pub const fn seconds_f32(seconds: f32) -> Self {
         match Self::try_seconds_f32(seconds) {
             Ok(duration) => duration,
             Err(FloatConstructorError::Nan) => {
-                panic!("passed NaN to `time::Duration::seconds_f32`");
+                panic!("passed NaN to `time::SignedDuration::seconds_f32`");
             }
             Err(FloatConstructorError::NegOverflow | FloatConstructorError::PosOverflow) => {
-                panic!("overflow constructing `time::Duration`");
+                panic!("overflow constructing `time::SignedDuration`");
             }
         }
     }
 
-    /// Creates a new `Duration` from the specified number of seconds
-    /// represented as `f64`. Any values that are out of bounds are saturated at
-    /// the minimum or maximum respectively. `NaN` gets turned into a `Duration`
-    /// of 0 seconds.
+    /// Creates a new `SignedDuration` from the specified number of seconds represented as `f64`.
+    /// Any values that are out of bounds are saturated at the minimum or maximum respectively.
+    /// `NaN` gets turned into a `SignedDuration` of 0 seconds.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::saturating_seconds_f64(0.5), 0.5.seconds());
-    /// assert_eq!(Duration::saturating_seconds_f64(-0.5), (-0.5).seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::saturating_seconds_f64(0.5), 0.5.seconds());
     /// assert_eq!(
-    ///     Duration::saturating_seconds_f64(f64::NAN),
-    ///     Duration::new(0, 0),
+    ///     SignedDuration::saturating_seconds_f64(-0.5),
+    ///     (-0.5).seconds()
     /// );
     /// assert_eq!(
-    ///     Duration::saturating_seconds_f64(f64::NEG_INFINITY),
-    ///     Duration::MIN,
+    ///     SignedDuration::saturating_seconds_f64(f64::NAN),
+    ///     SignedDuration::new(0, 0),
     /// );
     /// assert_eq!(
-    ///     Duration::saturating_seconds_f64(f64::INFINITY),
-    ///     Duration::MAX,
+    ///     SignedDuration::saturating_seconds_f64(f64::NEG_INFINITY),
+    ///     SignedDuration::MIN,
+    /// );
+    /// assert_eq!(
+    ///     SignedDuration::saturating_seconds_f64(f64::INFINITY),
+    ///     SignedDuration::MAX,
     /// );
     /// ```
     #[inline]
@@ -695,26 +700,28 @@ impl Duration {
         }
     }
 
-    /// Creates a new `Duration` from the specified number of seconds
-    /// represented as `f32`. Any values that are out of bounds are saturated at
-    /// the minimum or maximum respectively. `NaN` gets turned into a `Duration`
-    /// of 0 seconds.
+    /// Creates a new `SignedDuration` from the specified number of seconds represented as `f32`.
+    /// Any values that are out of bounds are saturated at the minimum or maximum respectively.
+    /// `NaN` gets turned into a `SignedDuration` of 0 seconds.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::saturating_seconds_f32(0.5), 0.5.seconds());
-    /// assert_eq!(Duration::saturating_seconds_f32(-0.5), (-0.5).seconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::saturating_seconds_f32(0.5), 0.5.seconds());
     /// assert_eq!(
-    ///     Duration::saturating_seconds_f32(f32::NAN),
-    ///     Duration::new(0, 0),
+    ///     SignedDuration::saturating_seconds_f32(-0.5),
+    ///     (-0.5).seconds()
     /// );
     /// assert_eq!(
-    ///     Duration::saturating_seconds_f32(f32::NEG_INFINITY),
-    ///     Duration::MIN,
+    ///     SignedDuration::saturating_seconds_f32(f32::NAN),
+    ///     SignedDuration::new(0, 0),
     /// );
     /// assert_eq!(
-    ///     Duration::saturating_seconds_f32(f32::INFINITY),
-    ///     Duration::MAX,
+    ///     SignedDuration::saturating_seconds_f32(f32::NEG_INFINITY),
+    ///     SignedDuration::MIN,
+    /// );
+    /// assert_eq!(
+    ///     SignedDuration::saturating_seconds_f32(f32::INFINITY),
+    ///     SignedDuration::MAX,
     /// );
     /// ```
     #[inline]
@@ -727,17 +734,22 @@ impl Duration {
         }
     }
 
-    /// Creates a new `Duration` from the specified number of seconds
-    /// represented as `f64`. Returns `None` if the `Duration` can't be
-    /// represented.
+    /// Creates a new `SignedDuration` from the specified number of seconds represented as `f64`.
+    /// Returns `None` if the `SignedDuration` can't be represented.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::checked_seconds_f64(0.5), Some(0.5.seconds()));
-    /// assert_eq!(Duration::checked_seconds_f64(-0.5), Some((-0.5).seconds()));
-    /// assert_eq!(Duration::checked_seconds_f64(f64::NAN), None);
-    /// assert_eq!(Duration::checked_seconds_f64(f64::NEG_INFINITY), None);
-    /// assert_eq!(Duration::checked_seconds_f64(f64::INFINITY), None);
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(
+    ///     SignedDuration::checked_seconds_f64(0.5),
+    ///     Some(0.5.seconds())
+    /// );
+    /// assert_eq!(
+    ///     SignedDuration::checked_seconds_f64(-0.5),
+    ///     Some((-0.5).seconds())
+    /// );
+    /// assert_eq!(SignedDuration::checked_seconds_f64(f64::NAN), None);
+    /// assert_eq!(SignedDuration::checked_seconds_f64(f64::NEG_INFINITY), None);
+    /// assert_eq!(SignedDuration::checked_seconds_f64(f64::INFINITY), None);
     /// ```
     #[inline]
     pub const fn checked_seconds_f64(seconds: f64) -> Option<Self> {
@@ -747,17 +759,22 @@ impl Duration {
         }
     }
 
-    /// Creates a new `Duration` from the specified number of seconds
-    /// represented as `f32`. Returns `None` if the `Duration` can't be
-    /// represented.
+    /// Creates a new `SignedDuration` from the specified number of seconds represented as `f32`.
+    /// Returns `None` if the `SignedDuration` can't be represented.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::checked_seconds_f32(0.5), Some(0.5.seconds()));
-    /// assert_eq!(Duration::checked_seconds_f32(-0.5), Some((-0.5).seconds()));
-    /// assert_eq!(Duration::checked_seconds_f32(f32::NAN), None);
-    /// assert_eq!(Duration::checked_seconds_f32(f32::NEG_INFINITY), None);
-    /// assert_eq!(Duration::checked_seconds_f32(f32::INFINITY), None);
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(
+    ///     SignedDuration::checked_seconds_f32(0.5),
+    ///     Some(0.5.seconds())
+    /// );
+    /// assert_eq!(
+    ///     SignedDuration::checked_seconds_f32(-0.5),
+    ///     Some((-0.5).seconds())
+    /// );
+    /// assert_eq!(SignedDuration::checked_seconds_f32(f32::NAN), None);
+    /// assert_eq!(SignedDuration::checked_seconds_f32(f32::NEG_INFINITY), None);
+    /// assert_eq!(SignedDuration::checked_seconds_f32(f32::INFINITY), None);
     /// ```
     #[inline]
     pub const fn checked_seconds_f32(seconds: f32) -> Option<Self> {
@@ -767,12 +784,12 @@ impl Duration {
         }
     }
 
-    /// Create a new `Duration` with the given number of milliseconds.
+    /// Create a new `SignedDuration` with the given number of milliseconds.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::milliseconds(1), 1_000.microseconds());
-    /// assert_eq!(Duration::milliseconds(-1), (-1_000).microseconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::milliseconds(1), 1_000.microseconds());
+    /// assert_eq!(SignedDuration::milliseconds(-1), (-1_000).microseconds());
     /// ```
     #[inline]
     pub const fn milliseconds(milliseconds: i64) -> Self {
@@ -786,12 +803,12 @@ impl Duration {
         }
     }
 
-    /// Create a new `Duration` with the given number of microseconds.
+    /// Create a new `SignedDuration` with the given number of microseconds.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::microseconds(1), 1_000.nanoseconds());
-    /// assert_eq!(Duration::microseconds(-1), (-1_000).nanoseconds());
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::microseconds(1), 1_000.nanoseconds());
+    /// assert_eq!(SignedDuration::microseconds(-1), (-1_000).nanoseconds());
     /// ```
     #[inline]
     pub const fn microseconds(microseconds: i64) -> Self {
@@ -805,12 +822,12 @@ impl Duration {
         }
     }
 
-    /// Create a new `Duration` with the given number of nanoseconds.
+    /// Create a new `SignedDuration` with the given number of nanoseconds.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::nanoseconds(1), 1.microseconds() / 1_000);
-    /// assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::nanoseconds(1), 1.microseconds() / 1_000);
+    /// assert_eq!(SignedDuration::nanoseconds(-1), (-1).microseconds() / 1_000);
     /// ```
     #[inline]
     pub const fn nanoseconds(nanoseconds: i64) -> Self {
@@ -823,12 +840,12 @@ impl Duration {
         }
     }
 
-    /// Create a new `Duration` with the given number of nanoseconds.
+    /// Create a new `SignedDuration` with the given number of nanoseconds.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
+    /// # use time::{SignedDuration, ext::NumericalDuration};
     /// assert_eq!(
-    ///     Duration::nanoseconds_i128(1_234_567_890),
+    ///     SignedDuration::nanoseconds_i128(1_234_567_890),
     ///     1.seconds() + 234_567_890.nanoseconds()
     /// );
     /// ```
@@ -844,7 +861,7 @@ impl Duration {
         let nanoseconds = nanoseconds % Nanosecond::per_t::<i128>(Second);
 
         if seconds > i64::MAX as i128 || seconds < i64::MIN as i128 {
-            panic!("overflow constructing `time::Duration`");
+            panic!("overflow constructing `time::SignedDuration`");
         }
 
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus above.
@@ -1041,9 +1058,9 @@ impl Duration {
     /// Computes `self + rhs`, returning `None` if an overflow occurred.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
+    /// # use time::{SignedDuration, ext::NumericalDuration};
     /// assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
-    /// assert_eq!(Duration::MAX.checked_add(1.nanoseconds()), None);
+    /// assert_eq!(SignedDuration::MAX.checked_add(1.nanoseconds()), None);
     /// assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     /// ```
     #[inline]
@@ -1067,9 +1084,12 @@ impl Duration {
     /// Computes `self - rhs`, returning `None` if an overflow occurred.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(5.seconds().checked_sub(5.seconds()), Some(Duration::ZERO));
-    /// assert_eq!(Duration::MIN.checked_sub(1.nanoseconds()), None);
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(
+    ///     5.seconds().checked_sub(5.seconds()),
+    ///     Some(SignedDuration::ZERO)
+    /// );
+    /// assert_eq!(SignedDuration::MIN.checked_sub(1.nanoseconds()), None);
     /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
     #[inline]
@@ -1093,12 +1113,12 @@ impl Duration {
     /// Computes `self * rhs`, returning `None` if an overflow occurred.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
+    /// # use time::{SignedDuration, ext::NumericalDuration};
     /// assert_eq!(5.seconds().checked_mul(2), Some(10.seconds()));
     /// assert_eq!(5.seconds().checked_mul(-2), Some((-10).seconds()));
     /// assert_eq!(5.seconds().checked_mul(0), Some(0.seconds()));
-    /// assert_eq!(Duration::MAX.checked_mul(2), None);
-    /// assert_eq!(Duration::MIN.checked_mul(2), None);
+    /// assert_eq!(SignedDuration::MAX.checked_mul(2), None);
+    /// assert_eq!(SignedDuration::MIN.checked_mul(2), None);
     /// ```
     #[inline]
     pub const fn checked_mul(self, rhs: i32) -> Option<Self> {
@@ -1140,9 +1160,9 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
-    /// # use time::Duration;
+    /// # use time::SignedDuration;
     /// assert_eq!(5.seconds().checked_neg(), Some((-5).seconds()));
-    /// assert_eq!(Duration::MIN.checked_neg(), None);
+    /// assert_eq!(SignedDuration::MIN.checked_neg(), None);
     /// ```
     #[inline]
     pub const fn checked_neg(self) -> Option<Self> {
@@ -1159,14 +1179,20 @@ impl Duration {
     /// Computes `self + rhs`, saturating if an overflow occurred.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
+    /// # use time::{SignedDuration, ext::NumericalDuration};
     /// assert_eq!(5.seconds().saturating_add(5.seconds()), 10.seconds());
-    /// assert_eq!(Duration::MAX.saturating_add(1.nanoseconds()), Duration::MAX);
     /// assert_eq!(
-    ///     Duration::MIN.saturating_add((-1).nanoseconds()),
-    ///     Duration::MIN
+    ///     SignedDuration::MAX.saturating_add(1.nanoseconds()),
+    ///     SignedDuration::MAX
     /// );
-    /// assert_eq!((-5).seconds().saturating_add(5.seconds()), Duration::ZERO);
+    /// assert_eq!(
+    ///     SignedDuration::MIN.saturating_add((-1).nanoseconds()),
+    ///     SignedDuration::MIN
+    /// );
+    /// assert_eq!(
+    ///     (-5).seconds().saturating_add(5.seconds()),
+    ///     SignedDuration::ZERO
+    /// );
     /// ```
     #[inline]
     pub const fn saturating_add(self, rhs: Self) -> Self {
@@ -1201,12 +1227,18 @@ impl Duration {
     /// Computes `self - rhs`, saturating if an overflow occurred.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(5.seconds().saturating_sub(5.seconds()), Duration::ZERO);
-    /// assert_eq!(Duration::MIN.saturating_sub(1.nanoseconds()), Duration::MIN);
+    /// # use time::{SignedDuration, ext::NumericalDuration};
     /// assert_eq!(
-    ///     Duration::MAX.saturating_sub((-1).nanoseconds()),
-    ///     Duration::MAX
+    ///     5.seconds().saturating_sub(5.seconds()),
+    ///     SignedDuration::ZERO
+    /// );
+    /// assert_eq!(
+    ///     SignedDuration::MIN.saturating_sub(1.nanoseconds()),
+    ///     SignedDuration::MIN
+    /// );
+    /// assert_eq!(
+    ///     SignedDuration::MAX.saturating_sub((-1).nanoseconds()),
+    ///     SignedDuration::MAX
     /// );
     /// assert_eq!(5.seconds().saturating_sub(10.seconds()), (-5).seconds());
     /// ```
@@ -1243,14 +1275,14 @@ impl Duration {
     /// Computes `self * rhs`, saturating if an overflow occurred.
     ///
     /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
+    /// # use time::{SignedDuration, ext::NumericalDuration};
     /// assert_eq!(5.seconds().saturating_mul(2), 10.seconds());
     /// assert_eq!(5.seconds().saturating_mul(-2), (-10).seconds());
-    /// assert_eq!(5.seconds().saturating_mul(0), Duration::ZERO);
-    /// assert_eq!(Duration::MAX.saturating_mul(2), Duration::MAX);
-    /// assert_eq!(Duration::MIN.saturating_mul(2), Duration::MIN);
-    /// assert_eq!(Duration::MAX.saturating_mul(-2), Duration::MIN);
-    /// assert_eq!(Duration::MIN.saturating_mul(-2), Duration::MAX);
+    /// assert_eq!(5.seconds().saturating_mul(0), SignedDuration::ZERO);
+    /// assert_eq!(SignedDuration::MAX.saturating_mul(2), SignedDuration::MAX);
+    /// assert_eq!(SignedDuration::MIN.saturating_mul(2), SignedDuration::MIN);
+    /// assert_eq!(SignedDuration::MAX.saturating_mul(-2), SignedDuration::MIN);
+    /// assert_eq!(SignedDuration::MIN.saturating_mul(-2), SignedDuration::MAX);
     /// ```
     #[inline]
     pub const fn saturating_mul(self, rhs: i32) -> Self {
@@ -1299,19 +1331,19 @@ impl Duration {
 
 /// The format returned by this implementation is not stable and must not be relied upon.
 ///
-/// By default this produces an exact, full-precision printout of the duration.
-/// For a concise, rounded printout instead, you can use the `.N` format specifier:
+/// By default this produces an exact, full-precision printout of the duration. For a concise,
+/// rounded printout instead, you can use the `.N` format specifier:
 ///
 /// ```
-/// # use time::Duration;
+/// # use time::SignedDuration;
 /// #
-/// let duration = Duration::new(123456, 789011223);
+/// let duration = SignedDuration::new(123456, 789011223);
 /// println!("{duration:.3}");
 /// ```
 ///
 /// For the purposes of this implementation, a day is exactly 24 hours and a minute is exactly 60
 /// seconds.
-impl fmt::Display for Duration {
+impl fmt::Display for SignedDuration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_negative() {
             f.write_str("-")?;
@@ -1388,7 +1420,7 @@ impl fmt::Display for Duration {
     }
 }
 
-impl TryFrom<StdDuration> for Duration {
+impl TryFrom<StdDuration> for SignedDuration {
     type Error = error::ConversionRange;
 
     #[inline]
@@ -1403,11 +1435,11 @@ impl TryFrom<StdDuration> for Duration {
     }
 }
 
-impl TryFrom<Duration> for StdDuration {
+impl TryFrom<SignedDuration> for StdDuration {
     type Error = error::ConversionRange;
 
     #[inline]
-    fn try_from(duration: Duration) -> Result<Self, error::ConversionRange> {
+    fn try_from(duration: SignedDuration) -> Result<Self, error::ConversionRange> {
         Ok(Self::new(
             duration
                 .seconds
@@ -1422,7 +1454,7 @@ impl TryFrom<Duration> for StdDuration {
     }
 }
 
-impl Add for Duration {
+impl Add for SignedDuration {
     type Output = Self;
 
     /// # Panics
@@ -1436,7 +1468,7 @@ impl Add for Duration {
     }
 }
 
-impl Add<StdDuration> for Duration {
+impl Add<StdDuration> for SignedDuration {
     type Output = Self;
 
     /// # Panics
@@ -1446,24 +1478,24 @@ impl Add<StdDuration> for Duration {
     #[track_caller]
     fn add(self, std_duration: StdDuration) -> Self::Output {
         self + Self::try_from(std_duration)
-            .expect("overflow converting `std::time::Duration` to `time::Duration`")
+            .expect("overflow converting `std::time::Duration` to `time::SignedDuration`")
     }
 }
 
-impl Add<Duration> for StdDuration {
-    type Output = Duration;
+impl Add<SignedDuration> for StdDuration {
+    type Output = SignedDuration;
 
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add(self, rhs: Duration) -> Self::Output {
+    fn add(self, rhs: SignedDuration) -> Self::Output {
         rhs + self
     }
 }
 
-impl AddAssign<Self> for Duration {
+impl AddAssign<Self> for SignedDuration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1474,7 +1506,7 @@ impl AddAssign<Self> for Duration {
     }
 }
 
-impl AddAssign<StdDuration> for Duration {
+impl AddAssign<StdDuration> for SignedDuration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1485,13 +1517,13 @@ impl AddAssign<StdDuration> for Duration {
     }
 }
 
-impl AddAssign<Duration> for StdDuration {
+impl AddAssign<SignedDuration> for StdDuration {
     /// # Panics
     ///
     /// This may panic if the resulting addition cannot be represented.
     #[inline]
     #[track_caller]
-    fn add_assign(&mut self, rhs: Duration) {
+    fn add_assign(&mut self, rhs: SignedDuration) {
         *self = (*self + rhs).try_into().expect(
             "Cannot represent a resulting duration in std. Try `let x = x + rhs;`, which will \
              change the type.",
@@ -1499,7 +1531,7 @@ impl AddAssign<Duration> for StdDuration {
     }
 }
 
-impl Neg for Duration {
+impl Neg for SignedDuration {
     type Output = Self;
 
     /// # Panics
@@ -1512,7 +1544,7 @@ impl Neg for Duration {
     }
 }
 
-impl Sub for Duration {
+impl Sub for SignedDuration {
     type Output = Self;
 
     /// # Panics
@@ -1526,7 +1558,7 @@ impl Sub for Duration {
     }
 }
 
-impl Sub<StdDuration> for Duration {
+impl Sub<StdDuration> for SignedDuration {
     type Output = Self;
 
     /// # Panics
@@ -1536,26 +1568,26 @@ impl Sub<StdDuration> for Duration {
     #[track_caller]
     fn sub(self, rhs: StdDuration) -> Self::Output {
         self - Self::try_from(rhs)
-            .expect("overflow converting `std::time::Duration` to `time::Duration`")
+            .expect("overflow converting `std::time::Duration` to `time::SignedDuration`")
     }
 }
 
-impl Sub<Duration> for StdDuration {
-    type Output = Duration;
+impl Sub<SignedDuration> for StdDuration {
+    type Output = SignedDuration;
 
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub(self, rhs: Duration) -> Self::Output {
-        Duration::try_from(self)
-            .expect("overflow converting `std::time::Duration` to `time::Duration`")
+    fn sub(self, rhs: SignedDuration) -> Self::Output {
+        SignedDuration::try_from(self)
+            .expect("overflow converting `std::time::Duration` to `time::SignedDuration`")
             - rhs
     }
 }
 
-impl SubAssign<Self> for Duration {
+impl SubAssign<Self> for SignedDuration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1566,7 +1598,7 @@ impl SubAssign<Self> for Duration {
     }
 }
 
-impl SubAssign<StdDuration> for Duration {
+impl SubAssign<StdDuration> for SignedDuration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1577,13 +1609,13 @@ impl SubAssign<StdDuration> for Duration {
     }
 }
 
-impl SubAssign<Duration> for StdDuration {
+impl SubAssign<SignedDuration> for StdDuration {
     /// # Panics
     ///
     /// This may panic if the resulting subtraction can not be represented.
     #[inline]
     #[track_caller]
-    fn sub_assign(&mut self, rhs: Duration) {
+    fn sub_assign(&mut self, rhs: SignedDuration) {
         *self = (*self - rhs).try_into().expect(
             "Cannot represent a resulting duration in std. Try `let x = x - rhs;`, which will \
              change the type.",
@@ -1601,11 +1633,11 @@ macro_rules! cast_signed {
     };
 }
 
-/// Implement `Mul` (reflexively), `MulAssign`, `Div`, and `DivAssign` for `Duration` for various
-/// signed types.
+/// Implement `Mul` (reflexively), `MulAssign`, `Div`, and `DivAssign` for `SignedDuration` for
+/// various signed types.
 macro_rules! duration_mul_div_int {
     ($(@$signedness:ident $type:ty),+ $(,)?) => {$(
-        impl Mul<$type> for Duration {
+        impl Mul<$type> for SignedDuration {
             type Output = Self;
 
             /// # Panics
@@ -1622,20 +1654,20 @@ macro_rules! duration_mul_div_int {
             }
         }
 
-        impl Mul<Duration> for $type {
-            type Output = Duration;
+        impl Mul<SignedDuration> for $type {
+            type Output = SignedDuration;
 
             /// # Panics
             ///
             /// This may panic if an overflow occurs.
             #[inline]
             #[track_caller]
-            fn mul(self, rhs: Duration) -> Self::Output {
+            fn mul(self, rhs: SignedDuration) -> Self::Output {
                 rhs * self
             }
         }
 
-        impl MulAssign<$type> for Duration {
+        impl MulAssign<$type> for SignedDuration {
             /// # Panics
             ///
             /// This may panic if an overflow occurs.
@@ -1646,7 +1678,7 @@ macro_rules! duration_mul_div_int {
             }
         }
 
-        impl Div<$type> for Duration {
+        impl Div<$type> for SignedDuration {
             type Output = Self;
 
             /// # Panics
@@ -1661,7 +1693,7 @@ macro_rules! duration_mul_div_int {
             }
         }
 
-        impl DivAssign<$type> for Duration {
+        impl DivAssign<$type> for SignedDuration {
             /// # Panics
             ///
             /// This may panic if an overflow occurs or if `rhs == 0`.
@@ -1683,7 +1715,7 @@ duration_mul_div_int! {
     @unsigned u32,
 }
 
-impl Mul<f32> for Duration {
+impl Mul<f32> for SignedDuration {
     type Output = Self;
 
     /// # Panics
@@ -1696,20 +1728,20 @@ impl Mul<f32> for Duration {
     }
 }
 
-impl Mul<Duration> for f32 {
-    type Output = Duration;
+impl Mul<SignedDuration> for f32 {
+    type Output = SignedDuration;
 
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn mul(self, rhs: Duration) -> Self::Output {
+    fn mul(self, rhs: SignedDuration) -> Self::Output {
         rhs * self
     }
 }
 
-impl Mul<f64> for Duration {
+impl Mul<f64> for SignedDuration {
     type Output = Self;
 
     /// # Panics
@@ -1722,20 +1754,20 @@ impl Mul<f64> for Duration {
     }
 }
 
-impl Mul<Duration> for f64 {
-    type Output = Duration;
+impl Mul<SignedDuration> for f64 {
+    type Output = SignedDuration;
 
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn mul(self, rhs: Duration) -> Self::Output {
+    fn mul(self, rhs: SignedDuration) -> Self::Output {
         rhs * self
     }
 }
 
-impl MulAssign<f32> for Duration {
+impl MulAssign<f32> for SignedDuration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1746,7 +1778,7 @@ impl MulAssign<f32> for Duration {
     }
 }
 
-impl MulAssign<f64> for Duration {
+impl MulAssign<f64> for SignedDuration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1757,7 +1789,7 @@ impl MulAssign<f64> for Duration {
     }
 }
 
-impl Div<f32> for Duration {
+impl Div<f32> for SignedDuration {
     type Output = Self;
 
     /// # Panics
@@ -1770,7 +1802,7 @@ impl Div<f32> for Duration {
     }
 }
 
-impl Div<f64> for Duration {
+impl Div<f64> for SignedDuration {
     type Output = Self;
 
     /// # Panics
@@ -1783,7 +1815,7 @@ impl Div<f64> for Duration {
     }
 }
 
-impl DivAssign<f32> for Duration {
+impl DivAssign<f32> for SignedDuration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs or if `rhs == 0`.
@@ -1794,7 +1826,7 @@ impl DivAssign<f32> for Duration {
     }
 }
 
-impl DivAssign<f64> for Duration {
+impl DivAssign<f64> for SignedDuration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs or if `rhs == 0`.
@@ -1805,12 +1837,12 @@ impl DivAssign<f64> for Duration {
     }
 }
 
-impl Div for Duration {
+impl Div for SignedDuration {
     type Output = f64;
 
     /// # Panics
     ///
-    /// This may panic if `rhs == Duration::ZERO`.
+    /// This may panic if `rhs == SignedDuration::ZERO`.
     #[inline]
     #[track_caller]
     fn div(self, rhs: Self) -> Self::Output {
@@ -1818,12 +1850,12 @@ impl Div for Duration {
     }
 }
 
-impl Div<StdDuration> for Duration {
+impl Div<StdDuration> for SignedDuration {
     type Output = f64;
 
     /// # Panics
     ///
-    /// This may panic if `rhs == Duration::ZERO`.
+    /// This may panic if `rhs == SignedDuration::ZERO`.
     #[inline]
     #[track_caller]
     fn div(self, rhs: StdDuration) -> Self::Output {
@@ -1831,34 +1863,34 @@ impl Div<StdDuration> for Duration {
     }
 }
 
-impl Div<Duration> for StdDuration {
+impl Div<SignedDuration> for StdDuration {
     type Output = f64;
 
     /// # Panics
     ///
-    /// This may panic if `rhs == Duration::ZERO`.
+    /// This may panic if `rhs == SignedDuration::ZERO`.
     #[inline]
     #[track_caller]
-    fn div(self, rhs: Duration) -> Self::Output {
+    fn div(self, rhs: SignedDuration) -> Self::Output {
         self.as_secs_f64() / rhs.as_seconds_f64()
     }
 }
 
-impl PartialEq<StdDuration> for Duration {
+impl PartialEq<StdDuration> for SignedDuration {
     #[inline]
     fn eq(&self, rhs: &StdDuration) -> bool {
         Ok(*self) == Self::try_from(*rhs)
     }
 }
 
-impl PartialEq<Duration> for StdDuration {
+impl PartialEq<SignedDuration> for StdDuration {
     #[inline]
-    fn eq(&self, rhs: &Duration) -> bool {
+    fn eq(&self, rhs: &SignedDuration) -> bool {
         rhs == self
     }
 }
 
-impl PartialOrd<StdDuration> for Duration {
+impl PartialOrd<StdDuration> for SignedDuration {
     #[inline]
     fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
         if rhs.as_secs() > i64::MAX.cast_unsigned() {
@@ -1877,14 +1909,14 @@ impl PartialOrd<StdDuration> for Duration {
     }
 }
 
-impl PartialOrd<Duration> for StdDuration {
+impl PartialOrd<SignedDuration> for StdDuration {
     #[inline]
-    fn partial_cmp(&self, rhs: &Duration) -> Option<Ordering> {
+    fn partial_cmp(&self, rhs: &SignedDuration) -> Option<Ordering> {
         rhs.partial_cmp(self).map(Ordering::reverse)
     }
 }
 
-impl Sum for Duration {
+impl Sum for SignedDuration {
     #[inline]
     fn sum<I>(iter: I) -> Self
     where
@@ -1894,7 +1926,7 @@ impl Sum for Duration {
     }
 }
 
-impl<'a> Sum<&'a Self> for Duration {
+impl<'a> Sum<&'a Self> for SignedDuration {
     #[inline]
     fn sum<I>(iter: I) -> Self
     where
@@ -1905,7 +1937,7 @@ impl<'a> Sum<&'a Self> for Duration {
 }
 
 #[cfg(feature = "std")]
-impl Add<Duration> for SystemTime {
+impl Add<SignedDuration> for SystemTime {
     type Output = Self;
 
     /// # Panics
@@ -1913,7 +1945,7 @@ impl Add<Duration> for SystemTime {
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add(self, duration: Duration) -> Self::Output {
+    fn add(self, duration: SignedDuration) -> Self::Output {
         if duration.is_zero() {
             self
         } else if duration.is_positive() {
@@ -1926,24 +1958,24 @@ impl Add<Duration> for SystemTime {
 }
 
 #[cfg(feature = "std")]
-impl AddAssign<Duration> for SystemTime {
+impl AddAssign<SignedDuration> for SystemTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add_assign(&mut self, rhs: Duration) {
+    fn add_assign(&mut self, rhs: SignedDuration) {
         *self = *self + rhs;
     }
 }
 
 #[cfg(feature = "std")]
-impl Sub<Duration> for SystemTime {
+impl Sub<SignedDuration> for SystemTime {
     type Output = Self;
 
     #[inline]
     #[track_caller]
-    fn sub(self, duration: Duration) -> Self::Output {
+    fn sub(self, duration: SignedDuration) -> Self::Output {
         if duration.is_zero() {
             self
         } else if duration.is_positive() {
@@ -1956,13 +1988,13 @@ impl Sub<Duration> for SystemTime {
 }
 
 #[cfg(feature = "std")]
-impl SubAssign<Duration> for SystemTime {
+impl SubAssign<SignedDuration> for SystemTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub_assign(&mut self, rhs: Duration) {
+    fn sub_assign(&mut self, rhs: SignedDuration) {
         *self = *self - rhs;
     }
 }

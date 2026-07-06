@@ -2,10 +2,10 @@ use core::cmp::Ordering;
 use core::ops::Sub;
 use std::time::SystemTime;
 
-use crate::{Duration, UtcDateTime};
+use crate::{SignedDuration, UtcDateTime};
 
 impl Sub<SystemTime> for UtcDateTime {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     /// # Panics
     ///
@@ -18,7 +18,7 @@ impl Sub<SystemTime> for UtcDateTime {
 }
 
 impl Sub<UtcDateTime> for SystemTime {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     /// # Panics
     ///

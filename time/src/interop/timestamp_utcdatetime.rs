@@ -1,14 +1,14 @@
 use core::cmp::Ordering;
 use core::ops::Sub;
 
-use crate::{Duration, Timestamp, UtcDateTime};
+use crate::{SignedDuration, Timestamp, UtcDateTime};
 
 impl Sub<UtcDateTime> for Timestamp {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, rhs: UtcDateTime) -> Self::Output {
-        Duration::new(
+        SignedDuration::new(
             self.as_seconds() - rhs.unix_timestamp(),
             self.nanosecond().cast_signed() - rhs.nanosecond().cast_signed(),
         )
@@ -16,11 +16,11 @@ impl Sub<UtcDateTime> for Timestamp {
 }
 
 impl Sub<Timestamp> for UtcDateTime {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, rhs: Timestamp) -> Self::Output {
-        Duration::new(
+        SignedDuration::new(
             self.unix_timestamp() - rhs.as_seconds(),
             self.nanosecond().cast_signed() - rhs.nanosecond().cast_signed(),
         )

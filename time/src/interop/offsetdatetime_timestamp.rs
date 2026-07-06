@@ -4,14 +4,14 @@ use core::ops::Sub;
 #[allow(unused_imports)] // MSRV of 1.87
 use num_conv::prelude::*;
 
-use crate::{Duration, OffsetDateTime, Timestamp};
+use crate::{OffsetDateTime, SignedDuration, Timestamp};
 
 impl Sub<OffsetDateTime> for Timestamp {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, rhs: OffsetDateTime) -> Self::Output {
-        Duration::new(
+        SignedDuration::new(
             self.as_seconds() - rhs.unix_timestamp(),
             self.nanosecond().cast_signed() - rhs.nanosecond().cast_signed(),
         )
@@ -19,11 +19,11 @@ impl Sub<OffsetDateTime> for Timestamp {
 }
 
 impl Sub<Timestamp> for OffsetDateTime {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, rhs: Timestamp) -> Self::Output {
-        Duration::new(
+        SignedDuration::new(
             self.unix_timestamp() - rhs.as_seconds(),
             self.nanosecond().cast_signed() - rhs.nanosecond().cast_signed(),
         )

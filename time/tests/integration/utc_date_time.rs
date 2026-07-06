@@ -5,7 +5,7 @@ use rstest::rstest;
 use time::Weekday::*;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time, utc_datetime};
-use time::{Date, Duration, Month, OffsetDateTime, Time, UtcDateTime, UtcOffset, Weekday};
+use time::{Date, Month, OffsetDateTime, SignedDuration, Time, UtcDateTime, UtcOffset, Weekday};
 
 #[rstest]
 fn new() {
@@ -519,7 +519,7 @@ fn hash(#[case] udt: UtcDateTime) {
 #[case(utc_datetime!(1999-12-31 23:00), 1.hours(), utc_datetime!(2000-01-01 0:00))]
 fn add_duration(
     #[case] udt: UtcDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     assert_eq!(udt + duration, expected);
@@ -544,7 +544,7 @@ fn add_std_duration(
 #[case(utc_datetime!(2020-01-01 0:00:01), (-2).seconds(), utc_datetime!(2019-12-31 23:59:59))]
 fn add_assign_duration(
     #[case] mut udt: UtcDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     udt += duration;
@@ -572,7 +572,7 @@ fn add_assign_std_duration(
 #[case(utc_datetime!(1999-12-31 23:00), (-1).hours(), utc_datetime!(2000-01-01 0:00))]
 fn sub_duration(
     #[case] udt: UtcDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     assert_eq!(udt - duration, expected);
@@ -597,7 +597,7 @@ fn sub_std_duration(
 #[case(utc_datetime!(2019-12-31 23:59:59), (-2).seconds(), utc_datetime!(2020-01-01 0:00:01))]
 fn sub_assign_duration(
     #[case] mut udt: UtcDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     udt -= duration;
@@ -637,7 +637,7 @@ fn sub_assign_std_duration(
 )]
 fn std_add_duration(
     #[case] lhs: SystemTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     assert_eq!(lhs + duration, expected);
@@ -658,7 +658,7 @@ fn std_add_duration(
 )]
 fn std_add_assign_duration(
     #[case] mut lhs: SystemTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     lhs += duration;
@@ -680,7 +680,7 @@ fn std_add_assign_duration(
 )]
 fn std_sub_duration(
     #[case] lhs: SystemTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     assert_eq!(lhs - duration, expected);
@@ -701,7 +701,7 @@ fn std_sub_duration(
 )]
 fn std_sub_assign_duration(
     #[case] mut lhs: SystemTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     lhs -= duration;
@@ -713,7 +713,7 @@ fn std_sub_assign_duration(
 #[case(utc_datetime!(2019-01-01 0:00), utc_datetime!(2019-01-02 0:00), (-1).days())]
 #[case(utc_datetime!(2020-01-01 0:00), utc_datetime!(2019-12-31 0:00), 1.days())]
 #[case(utc_datetime!(2019-12-31 0:00), utc_datetime!(2020-01-01 0:00), (-1).days())]
-fn sub_self(#[case] lhs: UtcDateTime, #[case] rhs: UtcDateTime, #[case] expected: Duration) {
+fn sub_self(#[case] lhs: UtcDateTime, #[case] rhs: UtcDateTime, #[case] expected: SignedDuration) {
     assert_eq!(lhs - rhs, expected);
 }
 
@@ -730,7 +730,7 @@ fn sub_self(#[case] lhs: UtcDateTime, #[case] rhs: UtcDateTime, #[case] expected
     utc_datetime!(2020-01-01 0:00),
     (-1).days(),
 )]
-fn std_sub(#[case] lhs: SystemTime, #[case] rhs: UtcDateTime, #[case] expected: Duration) {
+fn std_sub(#[case] lhs: SystemTime, #[case] rhs: UtcDateTime, #[case] expected: SignedDuration) {
     assert_eq!(lhs - rhs, expected);
 }
 
@@ -747,7 +747,7 @@ fn std_sub(#[case] lhs: SystemTime, #[case] rhs: UtcDateTime, #[case] expected: 
     SystemTime::from(utc_datetime!(2020-01-01 0:00)),
     (-1).days(),
 )]
-fn sub_std(#[case] udt: UtcDateTime, #[case] rhs: SystemTime, #[case] expected: Duration) {
+fn sub_std(#[case] udt: UtcDateTime, #[case] rhs: SystemTime, #[case] expected: SignedDuration) {
     assert_eq!(udt - rhs, expected);
 }
 
@@ -756,7 +756,11 @@ fn sub_std(#[case] udt: UtcDateTime, #[case] rhs: SystemTime, #[case] expected: 
 #[case(datetime!(2019-01-01 0:00 UTC), utc_datetime!(2019-01-02 0:00), (-1).days())]
 #[case(datetime!(2020-01-01 0:00 UTC), utc_datetime!(2019-12-31 0:00), 1.days())]
 #[case(datetime!(2019-12-31 0:00 UTC), utc_datetime!(2020-01-01 0:00), (-1).days())]
-fn odt_sub(#[case] lhs: OffsetDateTime, #[case] rhs: UtcDateTime, #[case] expected: Duration) {
+fn odt_sub(
+    #[case] lhs: OffsetDateTime,
+    #[case] rhs: UtcDateTime,
+    #[case] expected: SignedDuration,
+) {
     assert_eq!(lhs - rhs, expected);
 }
 
@@ -765,7 +769,11 @@ fn odt_sub(#[case] lhs: OffsetDateTime, #[case] rhs: UtcDateTime, #[case] expect
 #[case(utc_datetime!(2019-01-01 0:00), datetime!(2019-01-02 0:00 UTC), (-1).days())]
 #[case(utc_datetime!(2020-01-01 0:00), datetime!(2019-12-31 0:00 UTC), 1.days())]
 #[case(utc_datetime!(2019-12-31 0:00), datetime!(2020-01-01 0:00 UTC), (-1).days())]
-fn sub_odt(#[case] lhs: UtcDateTime, #[case] rhs: OffsetDateTime, #[case] expected: Duration) {
+fn sub_odt(
+    #[case] lhs: UtcDateTime,
+    #[case] rhs: OffsetDateTime,
+    #[case] expected: SignedDuration,
+) {
     assert_eq!(lhs - rhs, expected);
 }
 
@@ -1059,14 +1067,14 @@ fn to_odt(#[case] input: UtcDateTime) {
 #[case(utc_datetime!(2021-10-25 14:01:53.45), (-2).days(), utc_datetime!(2021-10-23 14:01:53.45))]
 #[case(utc_datetime!(2021-10-25 14:01:53.45), (-1).weeks(), utc_datetime!(2021-10-18 14:01:53.45))]
 #[case(UtcDateTime::MIN, (-1).nanoseconds(), None)]
-#[case(UtcDateTime::MIN, Duration::MIN, None)]
+#[case(UtcDateTime::MIN, SignedDuration::MIN, None)]
 #[case(UtcDateTime::MIN, (-530).weeks(), None)]
 #[case(UtcDateTime::MAX, 1.nanoseconds(), None)]
-#[case(UtcDateTime::MAX, Duration::MAX, None)]
+#[case(UtcDateTime::MAX, SignedDuration::MAX, None)]
 #[case(UtcDateTime::MAX, 530.weeks(), None)]
 fn checked_add_duration(
     #[case] input: UtcDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: impl Into<Option<UtcDateTime>>,
 ) {
     assert_eq!(input.checked_add(duration), expected.into());
@@ -1094,16 +1102,16 @@ fn checked_add_duration(
 #[case(utc_datetime!(2021-10-25 14:01:53.45), 2.days(), utc_datetime!(2021-10-23 14:01:53.45))]
 #[case(utc_datetime!(2021-10-25 14:01:53.45), 1.weeks(), utc_datetime!(2021-10-18 14:01:53.45))]
 #[case(UtcDateTime::MIN, 1.nanoseconds(), None)]
-#[case(UtcDateTime::MIN, Duration::MAX, None)]
+#[case(UtcDateTime::MIN, SignedDuration::MAX, None)]
 #[case(UtcDateTime::MIN, 530.weeks(), None)]
 #[case(UtcDateTime::MAX, (-1).nanoseconds(), None)]
-#[case(UtcDateTime::MAX, Duration::MIN, None)]
+#[case(UtcDateTime::MAX, SignedDuration::MIN, None)]
 #[case(UtcDateTime::MAX, (-530).weeks(), None)]
-#[case(UtcDateTime::MAX, Duration::ZERO, UtcDateTime::MAX)]
-#[case(UtcDateTime::MIN, Duration::ZERO, UtcDateTime::MIN)]
+#[case(UtcDateTime::MAX, SignedDuration::ZERO, UtcDateTime::MAX)]
+#[case(UtcDateTime::MIN, SignedDuration::ZERO, UtcDateTime::MIN)]
 fn checked_sub_duration(
     #[case] input: UtcDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: impl Into<Option<UtcDateTime>>,
 ) {
     assert_eq!(input.checked_sub(duration), expected.into());
@@ -1114,11 +1122,11 @@ fn checked_sub_duration(
 #[case(utc_datetime!(2021-11-12 17:47), (-2).days(), utc_datetime!(2021-11-10 17:47))]
 #[case(UtcDateTime::MIN, (-10).days(), UtcDateTime::MIN)]
 #[case(UtcDateTime::MAX, 10.days(), UtcDateTime::MAX)]
-#[case(UtcDateTime::MIN, Duration::ZERO, UtcDateTime::MIN)]
-#[case(UtcDateTime::MAX, Duration::ZERO, UtcDateTime::MAX)]
+#[case(UtcDateTime::MIN, SignedDuration::ZERO, UtcDateTime::MIN)]
+#[case(UtcDateTime::MAX, SignedDuration::ZERO, UtcDateTime::MAX)]
 fn saturating_add_duration(
     #[case] input: UtcDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     assert_eq!(input.saturating_add(duration), expected);
@@ -1129,11 +1137,11 @@ fn saturating_add_duration(
 #[case(utc_datetime!(2021-11-12 17:47), (-2).days(), utc_datetime!(2021-11-14 17:47))]
 #[case(UtcDateTime::MIN, 10.days(), UtcDateTime::MIN)]
 #[case(UtcDateTime::MAX, (-10).days(), UtcDateTime::MAX)]
-#[case(UtcDateTime::MIN, Duration::ZERO, UtcDateTime::MIN)]
-#[case(UtcDateTime::MAX, Duration::ZERO, UtcDateTime::MAX)]
+#[case(UtcDateTime::MIN, SignedDuration::ZERO, UtcDateTime::MIN)]
+#[case(UtcDateTime::MAX, SignedDuration::ZERO, UtcDateTime::MAX)]
 fn saturating_sub_duration(
     #[case] input: UtcDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: UtcDateTime,
 ) {
     assert_eq!(input.saturating_sub(duration), expected);

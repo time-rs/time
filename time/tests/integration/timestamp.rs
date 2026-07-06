@@ -6,7 +6,7 @@ use time::Weekday::*;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, format_description, offset, time, timestamp, utc_datetime};
 use time::{
-    Date, Duration, Month, OffsetDateTime, Time, Timestamp, UtcDateTime, UtcOffset, Weekday,
+    Date, Month, OffsetDateTime, SignedDuration, Time, Timestamp, UtcDateTime, UtcOffset, Weekday,
 };
 
 #[rstest]
@@ -515,7 +515,11 @@ fn replace_nanosecond(
 #[case(timestamp!(0), 1.days(), timestamp!(86_400))]
 #[case(timestamp!(1_546_398_245), 1.days(), timestamp!(1_546_484_645))]
 #[case(timestamp!(1_546_398_245), (-1).days(), timestamp!(1_546_311_845))]
-fn add_duration(#[case] ts: Timestamp, #[case] duration: Duration, #[case] expected: Timestamp) {
+fn add_duration(
+    #[case] ts: Timestamp,
+    #[case] duration: SignedDuration,
+    #[case] expected: Timestamp,
+) {
     assert_eq!(ts + duration, expected);
 }
 
@@ -534,7 +538,7 @@ fn add_std_duration(
 #[rstest]
 #[case(Timestamp::MAX, 1.nanoseconds())]
 #[should_panic(expected = "resulting value is out of range")]
-fn add_duration_panics(#[case] ts: Timestamp, #[case] duration: Duration) {
+fn add_duration_panics(#[case] ts: Timestamp, #[case] duration: SignedDuration) {
     let _ = ts + duration;
 }
 
@@ -552,7 +556,11 @@ fn add_std_panics(#[case] ts: Timestamp, #[case] duration: StdDuration) {
 #[case(timestamp!(86_400), 1.days(), timestamp!(0))]
 #[case(timestamp!(1_546_398_245), 1.days(), timestamp!(1_546_311_845))]
 #[case(timestamp!(1_546_398_245), (-1).days(), timestamp!(1_546_484_645))]
-fn sub_duration(#[case] ts: Timestamp, #[case] duration: Duration, #[case] expected: Timestamp) {
+fn sub_duration(
+    #[case] ts: Timestamp,
+    #[case] duration: SignedDuration,
+    #[case] expected: Timestamp,
+) {
     assert_eq!(ts - duration, expected);
 }
 
@@ -571,7 +579,7 @@ fn sub_std_duration(
 #[rstest]
 #[case(Timestamp::MIN, 1.nanoseconds())]
 #[should_panic(expected = "resulting value is out of range")]
-fn sub_duration_panics(#[case] ts: Timestamp, #[case] duration: Duration) {
+fn sub_duration_panics(#[case] ts: Timestamp, #[case] duration: SignedDuration) {
     let _ = ts - duration;
 }
 
@@ -591,7 +599,7 @@ fn sub_std_panics(#[case] ts: Timestamp, #[case] duration: StdDuration) {
 #[case(timestamp!(1_546_398_245), (-1).days(), timestamp!(1_546_311_845))]
 fn add_assign_duration(
     #[case] mut ts: Timestamp,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: Timestamp,
 ) {
     ts += duration;
@@ -618,7 +626,7 @@ fn add_assign_std_duration(
 #[case(timestamp!(1_546_398_245), (-1).days(), timestamp!(1_546_484_645))]
 fn sub_assign_duration(
     #[case] mut ts: Timestamp,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: Timestamp,
 ) {
     ts -= duration;
@@ -639,13 +647,13 @@ fn sub_assign_std_duration(
 }
 
 #[rstest]
-#[case(timestamp!(0), timestamp!(0), Duration::ZERO)]
+#[case(timestamp!(0), timestamp!(0), SignedDuration::ZERO)]
 #[case(timestamp!(0), timestamp!(0.000_000_001), (-1).nanoseconds())]
 #[case(timestamp!(0.000_000_001), timestamp!(0), 1.nanoseconds())]
 #[case(timestamp!(-1), timestamp!(-2), 1.seconds())]
 #[case(timestamp!(1_546_484_645), timestamp!(1_546_398_245), 1.days())]
 #[case(timestamp!(1_546_398_245), timestamp!(1_546_484_645), (-1).days())]
-fn sub_timestamp(#[case] lhs: Timestamp, #[case] rhs: Timestamp, #[case] expected: Duration) {
+fn sub_timestamp(#[case] lhs: Timestamp, #[case] rhs: Timestamp, #[case] expected: SignedDuration) {
     assert_eq!(lhs - rhs, expected);
 }
 
@@ -660,13 +668,13 @@ fn sub_timestamp(#[case] lhs: Timestamp, #[case] rhs: Timestamp, #[case] expecte
 #[case(timestamp!(1_546_398_245), (-1).weeks(), timestamp!(1_545_793_445))]
 #[case(Timestamp::MIN, (-1).nanoseconds(), None)]
 #[case(Timestamp::MAX, 1.nanoseconds(), None)]
-#[case(Timestamp::MIN, Duration::MIN, None)]
-#[case(Timestamp::MAX, Duration::MAX, None)]
+#[case(Timestamp::MIN, SignedDuration::MIN, None)]
+#[case(Timestamp::MAX, SignedDuration::MAX, None)]
 #[case(timestamp!(0.999_999_999), i64::MAX.seconds() + 1.nanoseconds(), None)]
-#[case(timestamp!(0), Duration::MIN, None)]
+#[case(timestamp!(0), SignedDuration::MIN, None)]
 fn checked_add_duration(
     #[case] ts: Timestamp,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: impl Into<Option<Timestamp>>,
 ) {
     assert_eq!(ts.checked_add(duration), expected.into());
@@ -681,13 +689,13 @@ fn checked_add_duration(
 #[case(timestamp!(1_546_398_245), (-1).weeks(), timestamp!(1_547_003_045))]
 #[case(Timestamp::MIN, 1.nanoseconds(), None)]
 #[case(Timestamp::MAX, (-1).nanoseconds(), None)]
-#[case(Timestamp::MIN, Duration::MIN, None)]
-#[case(Timestamp::MIN, Duration::MAX, None)]
+#[case(Timestamp::MIN, SignedDuration::MIN, None)]
+#[case(Timestamp::MIN, SignedDuration::MAX, None)]
 #[case(timestamp!(-1), i64::MAX.seconds() + 1.nanoseconds(), None)]
 #[case(timestamp!(0.999_999_999), (-i64::MAX).seconds() - 1.nanoseconds(), None)]
 fn checked_sub_duration(
     #[case] ts: Timestamp,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: impl Into<Option<Timestamp>>,
 ) {
     assert_eq!(ts.checked_sub(duration), expected.into());
@@ -702,7 +710,7 @@ fn checked_sub_duration(
 #[case(Timestamp::MAX, 1.nanoseconds(), Timestamp::MAX)]
 fn saturating_add_duration(
     #[case] ts: Timestamp,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: Timestamp,
 ) {
     assert_eq!(ts.saturating_add(duration), expected);
@@ -717,7 +725,7 @@ fn saturating_add_duration(
 #[case(Timestamp::MAX, (-1).nanoseconds(), Timestamp::MAX)]
 fn saturating_sub_duration(
     #[case] ts: Timestamp,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: Timestamp,
 ) {
     assert_eq!(ts.saturating_sub(duration), expected);
@@ -726,14 +734,14 @@ fn saturating_sub_duration(
 #[rstest]
 #[case(Timestamp::MAX, 1.nanoseconds())]
 #[should_panic]
-fn add_panics(#[case] ts: Timestamp, #[case] duration: Duration) {
+fn add_panics(#[case] ts: Timestamp, #[case] duration: SignedDuration) {
     let _ = ts + duration;
 }
 
 #[rstest]
 #[case(Timestamp::MIN, 1.nanoseconds())]
 #[should_panic]
-fn sub_panics(#[case] ts: Timestamp, #[case] duration: Duration) {
+fn sub_panics(#[case] ts: Timestamp, #[case] duration: SignedDuration) {
     let _ = ts - duration;
 }
 
@@ -841,7 +849,7 @@ fn from_timestamp_into_utc_datetime(#[case] source: Timestamp, #[case] expected:
 fn utc_datetime_sub_timestamp() {
     assert_eq!(
         utc_datetime!(2019-01-02 3:04:05) - timestamp!(1_546_398_245),
-        Duration::ZERO,
+        SignedDuration::ZERO,
     );
 }
 
@@ -879,8 +887,11 @@ fn into_offset_date_time(#[case] source: Timestamp) {
 
 #[rstest]
 #[case(timestamp!(1) - utc_datetime!(1970-01-01 0:00), 1.seconds())]
-#[case(timestamp!(0) - utc_datetime!(1970-01-01 0:00), Duration::ZERO)]
-fn sub_utc_date_time_implicit_utc(#[case] result: Duration, #[case] expected: Duration) {
+#[case(timestamp!(0) - utc_datetime!(1970-01-01 0:00), SignedDuration::ZERO)]
+fn sub_utc_date_time_implicit_utc(
+    #[case] result: SignedDuration,
+    #[case] expected: SignedDuration,
+) {
     assert_eq!(result, expected);
 }
 
@@ -942,7 +953,7 @@ fn timestamp_sub_system_time() {
 #[rstest]
 fn system_time_sub_timestamp() {
     let duration = SystemTime::UNIX_EPOCH - timestamp!(0);
-    assert_eq!(duration, Duration::ZERO);
+    assert_eq!(duration, SignedDuration::ZERO);
     let duration_before = (SystemTime::UNIX_EPOCH - StdDuration::new(5, 0)) - timestamp!(0);
     assert_eq!(duration_before, (-5).seconds());
 }

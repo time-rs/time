@@ -371,7 +371,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(-1:02:03).whole_seconds(), -3723);
     /// ```
     // This may be useful for anyone manually implementing arithmetic, as it
-    // would let them construct a `Duration` directly.
+    // would let them construct a `SignedDuration` directly.
     #[inline]
     pub const fn whole_seconds(self) -> i32 {
         self.hours.get() as i32 * Second::per_t::<i32>(Hour)

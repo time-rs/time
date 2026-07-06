@@ -26,7 +26,9 @@ use crate::num_fmt::str_from_raw_parts;
 use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::days_in_year;
-use crate::{Date, Duration, Month, PlainDateTime, Time, UtcDateTime, UtcOffset, Weekday, error};
+use crate::{
+    Date, Month, PlainDateTime, SignedDuration, Time, UtcDateTime, UtcOffset, Weekday, error,
+};
 
 /// The Julian day of the Unix epoch.
 const UNIX_EPOCH_JULIAN_DAY: i32 = OffsetDateTime::UNIX_EPOCH.to_julian_day();
@@ -424,10 +426,10 @@ impl OffsetDateTime {
     /// following:
     ///
     /// ```rust
-    /// # use time::{Duration, OffsetDateTime, ext::NumericalDuration};
+    /// # use time::{SignedDuration, OffsetDateTime, ext::NumericalDuration};
     /// let (timestamp, nanos) = (1, 500_000_000);
     /// assert_eq!(
-    ///     OffsetDateTime::from_unix_timestamp(timestamp)? + Duration::nanoseconds(nanos),
+    ///     OffsetDateTime::from_unix_timestamp(timestamp)? + SignedDuration::nanoseconds(nanos),
     ///     OffsetDateTime::UNIX_EPOCH + 1.5.seconds()
     /// );
     /// # Ok::<_, time::Error>(())
@@ -992,7 +994,7 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn checked_add(self, duration: Duration) -> Option<Self> {
+    pub const fn checked_add(self, duration: SignedDuration) -> Option<Self> {
         Some(const_try_opt!(self.date_time().checked_add(duration)).assume_offset(self.offset()))
     }
 
@@ -1013,7 +1015,7 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
+    pub const fn checked_sub(self, duration: SignedDuration) -> Option<Self> {
         Some(const_try_opt!(self.date_time().checked_sub(duration)).assume_offset(self.offset()))
     }
 
@@ -1063,7 +1065,7 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn saturating_add(self, duration: Duration) -> Self {
+    pub const fn saturating_add(self, duration: SignedDuration) -> Self {
         if let Some(datetime) = self.checked_add(duration) {
             datetime
         } else if duration.is_negative() {
@@ -1119,7 +1121,7 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn saturating_sub(self, duration: Duration) -> Self {
+    pub const fn saturating_sub(self, duration: SignedDuration) -> Self {
         if let Some(datetime) = self.checked_sub(duration) {
             datetime
         } else if duration.is_negative() {
@@ -1660,7 +1662,7 @@ impl fmt::Debug for OffsetDateTime {
     }
 }
 
-impl Add<Duration> for OffsetDateTime {
+impl Add<SignedDuration> for OffsetDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1668,7 +1670,7 @@ impl Add<Duration> for OffsetDateTime {
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add(self, duration: Duration) -> Self::Output {
+    fn add(self, duration: SignedDuration) -> Self::Output {
         self.checked_add(duration)
             .expect("resulting value is out of range")
     }
@@ -1699,13 +1701,13 @@ impl Add<StdDuration> for OffsetDateTime {
     }
 }
 
-impl AddAssign<Duration> for OffsetDateTime {
+impl AddAssign<SignedDuration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add_assign(&mut self, rhs: Duration) {
+    fn add_assign(&mut self, rhs: SignedDuration) {
         *self = *self + rhs;
     }
 }
@@ -1721,7 +1723,7 @@ impl AddAssign<StdDuration> for OffsetDateTime {
     }
 }
 
-impl Sub<Duration> for OffsetDateTime {
+impl Sub<SignedDuration> for OffsetDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1729,7 +1731,7 @@ impl Sub<Duration> for OffsetDateTime {
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub(self, rhs: Duration) -> Self::Output {
+    fn sub(self, rhs: SignedDuration) -> Self::Output {
         self.checked_sub(rhs)
             .expect("resulting value is out of range")
     }
@@ -1760,13 +1762,13 @@ impl Sub<StdDuration> for OffsetDateTime {
     }
 }
 
-impl SubAssign<Duration> for OffsetDateTime {
+impl SubAssign<SignedDuration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub_assign(&mut self, rhs: Duration) {
+    fn sub_assign(&mut self, rhs: SignedDuration) {
         *self = *self - rhs;
     }
 }
@@ -1783,12 +1785,12 @@ impl SubAssign<StdDuration> for OffsetDateTime {
 }
 
 impl Sub for OffsetDateTime {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
         let base = self.date_time() - rhs.date_time();
-        let adjustment = Duration::seconds(
+        let adjustment = SignedDuration::seconds(
             (self.offset.whole_seconds() - rhs.offset.whole_seconds()).widen::<i64>(),
         );
         base - adjustment

@@ -13,7 +13,7 @@ use time::format_description::{
 };
 use time::macros::{date, datetime, offset, time, utc_datetime};
 use time::parsing::Parsed;
-use time::{Duration, Error, Month, Time, Weekday};
+use time::{Error, Month, SignedDuration, Time, Weekday};
 
 fn component_range_error() -> error::ComponentRange {
     Time::from_hms(24, 0, 0).expect_err("24 is not a valid hour")
@@ -34,7 +34,7 @@ fn invalid_format_description() -> error::InvalidFormatDescription {
 #[case(utc_datetime!(2021-001 0:00))]
 #[case(Weekday::Monday)]
 #[case(Month::January)]
-#[case(Duration::ZERO)]
+#[case(SignedDuration::ZERO)]
 #[case(IndeterminateOffset)]
 #[case(ConversionRange)]
 #[case(invalid_format_description())]
@@ -127,7 +127,7 @@ fn clone_coverage(#[case] value: impl Clone) {
 #[case(Month::January)]
 #[expect(deprecated)]
 #[case(Instant::now())]
-#[case(Duration::ZERO)]
+#[case(SignedDuration::ZERO)]
 #[case(component_range_error())]
 fn hash(#[case] value: impl Hash) {
     let mut hasher = DefaultHasher::new();
@@ -158,7 +158,7 @@ fn ord(#[case] a: time::UtcOffset, #[case] b: time::UtcOffset, #[case] ordering:
 
 #[rstest]
 #[case(utc_datetime!(2021-001 0:00))]
-#[case(Duration::ZERO)]
+#[case(SignedDuration::ZERO)]
 #[case(IndeterminateOffset)]
 #[case(ConversionRange)]
 #[case(TryFromParsed::InsufficientInformation)]

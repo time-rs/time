@@ -97,7 +97,6 @@ pub mod convert {
     pub use time_core::unit::*;
 }
 mod date;
-mod duration;
 pub mod error;
 pub mod ext;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
@@ -127,6 +126,7 @@ mod rand08;
 mod rand09;
 #[cfg(feature = "serde")]
 pub mod serde;
+mod signed_duration;
 mod sys;
 #[cfg(test)]
 mod tests;
@@ -140,7 +140,6 @@ mod weekday;
 pub use time_core::unit;
 
 pub use crate::date::Date;
-pub use crate::duration::Duration;
 pub use crate::error::Error;
 #[doc(hidden)]
 #[cfg(feature = "std")]
@@ -149,6 +148,7 @@ pub use crate::instant::Instant;
 pub use crate::month::Month;
 pub use crate::offset_date_time::OffsetDateTime;
 pub use crate::plain_date_time::PlainDateTime;
+pub use crate::signed_duration::SignedDuration;
 pub use crate::time::Time;
 pub use crate::timestamp::Timestamp;
 pub use crate::utc_date_time::UtcDateTime;
@@ -163,6 +163,12 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// [`PlainDateTime`] when writing new code. In the next breaking release, this alias will be
 /// removed.
 pub type PrimitiveDateTime = PlainDateTime;
+/// A [`SignedDuration`] under its original name.
+///
+/// This type is not currently deprecated, but it likely will be in the future. Use
+/// [`SignedDuration`] when writing new code. In the next breaking release, this alias will be
+/// removed.
+pub type Duration = SignedDuration;
 
 /// A private type used to restrict the ability to call methods that are not intended to be called
 /// by downstream users.

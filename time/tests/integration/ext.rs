@@ -1,60 +1,60 @@
 mod numerical_duration {
     use rstest::rstest;
-    use time::Duration;
+    use time::SignedDuration;
     use time::ext::NumericalDuration;
 
     #[rstest]
-    #[case(5.nanoseconds(), Duration::nanoseconds(5))]
-    #[case(5.microseconds(), Duration::microseconds(5))]
-    #[case(5.milliseconds(), Duration::milliseconds(5))]
-    #[case(5.seconds(), Duration::seconds(5))]
-    #[case(5.minutes(), Duration::minutes(5))]
-    #[case(5.hours(), Duration::hours(5))]
-    #[case(5.days(), Duration::days(5))]
-    #[case(5.weeks(), Duration::weeks(5))]
-    fn unsigned(#[case] ext_trait: Duration, #[case] expected: Duration) {
+    #[case(5.nanoseconds(), SignedDuration::nanoseconds(5))]
+    #[case(5.microseconds(), SignedDuration::microseconds(5))]
+    #[case(5.milliseconds(), SignedDuration::milliseconds(5))]
+    #[case(5.seconds(), SignedDuration::seconds(5))]
+    #[case(5.minutes(), SignedDuration::minutes(5))]
+    #[case(5.hours(), SignedDuration::hours(5))]
+    #[case(5.days(), SignedDuration::days(5))]
+    #[case(5.weeks(), SignedDuration::weeks(5))]
+    fn unsigned(#[case] ext_trait: SignedDuration, #[case] expected: SignedDuration) {
         assert_eq!(ext_trait, expected);
     }
 
     #[rstest]
-    #[case((-5).nanoseconds(), Duration::nanoseconds(-5))]
-    #[case((-5).microseconds(), Duration::microseconds(-5))]
-    #[case((-5).milliseconds(), Duration::milliseconds(-5))]
-    #[case((-5).seconds(), Duration::seconds(-5))]
-    #[case((-5).minutes(), Duration::minutes(-5))]
-    #[case((-5).hours(), Duration::hours(-5))]
-    #[case((-5).days(), Duration::days(-5))]
-    #[case((-5).weeks(), Duration::weeks(-5))]
-    fn signed(#[case] ext_trait: Duration, #[case] expected: Duration) {
+    #[case((-5).nanoseconds(), SignedDuration::nanoseconds(-5))]
+    #[case((-5).microseconds(), SignedDuration::microseconds(-5))]
+    #[case((-5).milliseconds(), SignedDuration::milliseconds(-5))]
+    #[case((-5).seconds(), SignedDuration::seconds(-5))]
+    #[case((-5).minutes(), SignedDuration::minutes(-5))]
+    #[case((-5).hours(), SignedDuration::hours(-5))]
+    #[case((-5).days(), SignedDuration::days(-5))]
+    #[case((-5).weeks(), SignedDuration::weeks(-5))]
+    fn signed(#[case] ext_trait: SignedDuration, #[case] expected: SignedDuration) {
         assert_eq!(ext_trait, expected);
     }
 
     #[rstest]
-    #[case::truncate_not_round(1.9.nanoseconds(), Duration::nanoseconds(1))]
-    #[case(1.0.nanoseconds(), Duration::nanoseconds(1))]
-    #[case(1.0.microseconds(), Duration::microseconds(1))]
-    #[case(1.0.milliseconds(), Duration::milliseconds(1))]
-    #[case(1.0.seconds(), Duration::seconds(1))]
-    #[case(1.0.minutes(), Duration::minutes(1))]
-    #[case(1.0.hours(), Duration::hours(1))]
-    #[case(1.0.days(), Duration::days(1))]
-    #[case(1.0.weeks(), Duration::weeks(1))]
-    #[case(1.5.nanoseconds(), Duration::nanoseconds(1))]
-    #[case(1.5.microseconds(), Duration::nanoseconds(1_500))]
-    #[case(1.5.milliseconds(), Duration::microseconds(1_500))]
-    #[case(1.5.seconds(), Duration::milliseconds(1_500))]
-    #[case(1.5.minutes(), Duration::seconds(90))]
-    #[case(1.5.hours(), Duration::minutes(90))]
-    #[case(1.5.days(), Duration::hours(36))]
-    #[case(1.5.weeks(), Duration::hours(252))]
-    fn float(#[case] ext_trait: Duration, #[case] expected: Duration) {
+    #[case::truncate_not_round(1.9.nanoseconds(), SignedDuration::nanoseconds(1))]
+    #[case(1.0.nanoseconds(), SignedDuration::nanoseconds(1))]
+    #[case(1.0.microseconds(), SignedDuration::microseconds(1))]
+    #[case(1.0.milliseconds(), SignedDuration::milliseconds(1))]
+    #[case(1.0.seconds(), SignedDuration::seconds(1))]
+    #[case(1.0.minutes(), SignedDuration::minutes(1))]
+    #[case(1.0.hours(), SignedDuration::hours(1))]
+    #[case(1.0.days(), SignedDuration::days(1))]
+    #[case(1.0.weeks(), SignedDuration::weeks(1))]
+    #[case(1.5.nanoseconds(), SignedDuration::nanoseconds(1))]
+    #[case(1.5.microseconds(), SignedDuration::nanoseconds(1_500))]
+    #[case(1.5.milliseconds(), SignedDuration::microseconds(1_500))]
+    #[case(1.5.seconds(), SignedDuration::milliseconds(1_500))]
+    #[case(1.5.minutes(), SignedDuration::seconds(90))]
+    #[case(1.5.hours(), SignedDuration::minutes(90))]
+    #[case(1.5.days(), SignedDuration::hours(36))]
+    #[case(1.5.weeks(), SignedDuration::hours(252))]
+    fn float(#[case] ext_trait: SignedDuration, #[case] expected: SignedDuration) {
         assert_eq!(ext_trait, expected);
     }
 
     #[rstest]
     #[case(2.seconds() + 500.milliseconds(), 2_500.milliseconds())]
     #[case(2.seconds() - 500.milliseconds(), 1_500.milliseconds())]
-    fn arithmetic(#[case] arithmetic_: Duration, #[case] expected: Duration) {
+    fn arithmetic(#[case] arithmetic_: SignedDuration, #[case] expected: SignedDuration) {
         assert_eq!(arithmetic_, expected);
     }
 }

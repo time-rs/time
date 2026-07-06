@@ -6,7 +6,7 @@ use std::time::Instant as StdInstant;
 
 use rstest::rstest;
 use time::ext::{NumericalDuration, NumericalStdDuration};
-use time::{Duration, Instant};
+use time::{Instant, SignedDuration};
 
 #[rstest]
 fn elapsed() {
@@ -19,7 +19,7 @@ fn elapsed() {
 #[case(0.seconds())]
 #[case(5.seconds())]
 #[case((-5).seconds())]
-fn checked_add(#[case] duration: Duration) {
+fn checked_add(#[case] duration: SignedDuration) {
     let now = Instant::now();
     assert_eq!(now.checked_add(duration), Some(now + duration));
 }
@@ -28,7 +28,7 @@ fn checked_add(#[case] duration: Duration) {
 #[case(0.seconds())]
 #[case(5.seconds())]
 #[case((-5).seconds())]
-fn checked_sub(#[case] duration: Duration) {
+fn checked_sub(#[case] duration: SignedDuration) {
     let now = Instant::now();
     assert_eq!(now.checked_sub(duration), Some(now - duration));
 }
@@ -143,7 +143,7 @@ fn add_assign_std_duration(#[case] ms: u64) {
 fn sub_duration(#[case] ms: i64) {
     let instant = Instant::now();
     assert!(instant - ms.milliseconds() <= Instant::now());
-    assert_eq!(instant - Duration::ZERO, instant);
+    assert_eq!(instant - SignedDuration::ZERO, instant);
 }
 
 #[rstest]
@@ -206,7 +206,7 @@ fn std_eq() {
 #[rstest]
 #[case(1.seconds(), Ordering::Less)]
 #[case((-1).seconds(), Ordering::Greater)]
-fn ord(#[case] duration: Duration, #[case] expected: Ordering) {
+fn ord(#[case] duration: SignedDuration, #[case] expected: Ordering) {
     let now_time = Instant::now();
     let now_std = now_time + duration;
     assert_eq!(now_time.cmp(&now_std), expected);
@@ -215,7 +215,7 @@ fn ord(#[case] duration: Duration, #[case] expected: Ordering) {
 #[rstest]
 #[case(1.seconds(), Ordering::Less)]
 #[case((-1).seconds(), Ordering::Greater)]
-fn partial_ord_std(#[case] duration: Duration, #[case] expected: Ordering) {
+fn partial_ord_std(#[case] duration: SignedDuration, #[case] expected: Ordering) {
     let now_time = Instant::now();
     let now_std = StdInstant::from(now_time) + duration;
     assert_eq!(now_time.partial_cmp(&now_std), Some(expected));
@@ -224,7 +224,7 @@ fn partial_ord_std(#[case] duration: Duration, #[case] expected: Ordering) {
 #[rstest]
 #[case(1.seconds(), Ordering::Greater)]
 #[case((-1).seconds(), Ordering::Less)]
-fn std_partial_ord(#[case] duration: Duration, #[case] expected: Ordering) {
+fn std_partial_ord(#[case] duration: SignedDuration, #[case] expected: Ordering) {
     let now_time = Instant::now();
     let now_std = StdInstant::from(now_time) + duration;
     assert_eq!(now_std.partial_cmp(&now_time), Some(expected));
@@ -233,16 +233,16 @@ fn std_partial_ord(#[case] duration: Duration, #[case] expected: Ordering) {
 #[rstest]
 fn sub_regression() {
     let now = Instant::now();
-    let future = now + Duration::seconds(5);
-    let past = now - Duration::seconds(5);
+    let future = now + SignedDuration::seconds(5);
+    let past = now - SignedDuration::seconds(5);
 
-    assert_eq!(future - now, Duration::seconds(5));
-    assert_eq!(now - past, Duration::seconds(5));
-    assert_eq!(future - past, Duration::seconds(10));
+    assert_eq!(future - now, SignedDuration::seconds(5));
+    assert_eq!(now - past, SignedDuration::seconds(5));
+    assert_eq!(future - past, SignedDuration::seconds(10));
 
-    assert_eq!(now - future, Duration::seconds(-5));
-    assert_eq!(past - now, Duration::seconds(-5));
-    assert_eq!(past - future, Duration::seconds(-10));
+    assert_eq!(now - future, SignedDuration::seconds(-5));
+    assert_eq!(past - now, SignedDuration::seconds(-5));
+    assert_eq!(past - future, SignedDuration::seconds(-10));
 }
 
 #[rstest]

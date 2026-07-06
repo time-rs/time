@@ -1,11 +1,11 @@
 use std::time::Duration as StdDuration;
 
 use criterion::Bencher;
-use time::Duration;
+use time::SignedDuration;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 
 setup_benchmark! {
-    "Duration",
+    "SignedDuration",
 
     fn is_zero(ben: &mut Bencher<'_>) {
         let a = (-1).nanoseconds();
@@ -53,115 +53,115 @@ setup_benchmark! {
     }
 
     fn new(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::new(1, 0));
-        ben.iter(|| Duration::new(-1, 0));
-        ben.iter(|| Duration::new(1, 2_000_000_000));
+        ben.iter(|| SignedDuration::new(1, 0));
+        ben.iter(|| SignedDuration::new(-1, 0));
+        ben.iter(|| SignedDuration::new(1, 2_000_000_000));
 
-        ben.iter(|| Duration::new(0, 0));
-        ben.iter(|| Duration::new(0, 1_000_000_000));
-        ben.iter(|| Duration::new(-1, 1_000_000_000));
-        ben.iter(|| Duration::new(-2, 1_000_000_000));
+        ben.iter(|| SignedDuration::new(0, 0));
+        ben.iter(|| SignedDuration::new(0, 1_000_000_000));
+        ben.iter(|| SignedDuration::new(-1, 1_000_000_000));
+        ben.iter(|| SignedDuration::new(-2, 1_000_000_000));
 
-        ben.iter(|| Duration::new(1, -1));
-        ben.iter(|| Duration::new(-1, 1));
-        ben.iter(|| Duration::new(1, 1));
-        ben.iter(|| Duration::new(-1, -1));
-        ben.iter(|| Duration::new(0, 1));
-        ben.iter(|| Duration::new(0, -1));
+        ben.iter(|| SignedDuration::new(1, -1));
+        ben.iter(|| SignedDuration::new(-1, 1));
+        ben.iter(|| SignedDuration::new(1, 1));
+        ben.iter(|| SignedDuration::new(-1, -1));
+        ben.iter(|| SignedDuration::new(0, 1));
+        ben.iter(|| SignedDuration::new(0, -1));
 
-        ben.iter(|| Duration::new(-1, 1_400_000_000));
-        ben.iter(|| Duration::new(-2, 1_400_000_000));
-        ben.iter(|| Duration::new(-3, 1_400_000_000));
-        ben.iter(|| Duration::new(1, -1_400_000_000));
-        ben.iter(|| Duration::new(2, -1_400_000_000));
-        ben.iter(|| Duration::new(3, -1_400_000_000));
+        ben.iter(|| SignedDuration::new(-1, 1_400_000_000));
+        ben.iter(|| SignedDuration::new(-2, 1_400_000_000));
+        ben.iter(|| SignedDuration::new(-3, 1_400_000_000));
+        ben.iter(|| SignedDuration::new(1, -1_400_000_000));
+        ben.iter(|| SignedDuration::new(2, -1_400_000_000));
+        ben.iter(|| SignedDuration::new(3, -1_400_000_000));
     }
 
     fn weeks(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::weeks(1));
-        ben.iter(|| Duration::weeks(2));
-        ben.iter(|| Duration::weeks(-1));
-        ben.iter(|| Duration::weeks(-2));
+        ben.iter(|| SignedDuration::weeks(1));
+        ben.iter(|| SignedDuration::weeks(2));
+        ben.iter(|| SignedDuration::weeks(-1));
+        ben.iter(|| SignedDuration::weeks(-2));
     }
 
     fn days(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::days(1));
-        ben.iter(|| Duration::days(2));
-        ben.iter(|| Duration::days(-1));
-        ben.iter(|| Duration::days(-2));
+        ben.iter(|| SignedDuration::days(1));
+        ben.iter(|| SignedDuration::days(2));
+        ben.iter(|| SignedDuration::days(-1));
+        ben.iter(|| SignedDuration::days(-2));
     }
 
     fn hours(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::hours(1));
-        ben.iter(|| Duration::hours(2));
-        ben.iter(|| Duration::hours(-1));
-        ben.iter(|| Duration::hours(-2));
+        ben.iter(|| SignedDuration::hours(1));
+        ben.iter(|| SignedDuration::hours(2));
+        ben.iter(|| SignedDuration::hours(-1));
+        ben.iter(|| SignedDuration::hours(-2));
     }
 
     fn minutes(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::minutes(1));
-        ben.iter(|| Duration::minutes(2));
-        ben.iter(|| Duration::minutes(-1));
-        ben.iter(|| Duration::minutes(-2));
+        ben.iter(|| SignedDuration::minutes(1));
+        ben.iter(|| SignedDuration::minutes(2));
+        ben.iter(|| SignedDuration::minutes(-1));
+        ben.iter(|| SignedDuration::minutes(-2));
     }
 
     fn seconds(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::seconds(1));
-        ben.iter(|| Duration::seconds(2));
-        ben.iter(|| Duration::seconds(-1));
-        ben.iter(|| Duration::seconds(-2));
+        ben.iter(|| SignedDuration::seconds(1));
+        ben.iter(|| SignedDuration::seconds(2));
+        ben.iter(|| SignedDuration::seconds(-1));
+        ben.iter(|| SignedDuration::seconds(-2));
     }
 
     fn seconds_f64(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::seconds_f64(0.5));
-        ben.iter(|| Duration::seconds_f64(-0.5));
+        ben.iter(|| SignedDuration::seconds_f64(0.5));
+        ben.iter(|| SignedDuration::seconds_f64(-0.5));
     }
 
     fn seconds_f32(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::seconds_f32(0.5));
-        ben.iter(|| Duration::seconds_f32(-0.5));
+        ben.iter(|| SignedDuration::seconds_f32(0.5));
+        ben.iter(|| SignedDuration::seconds_f32(-0.5));
     }
 
     fn saturating_seconds_f64(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::saturating_seconds_f64(0.5));
-        ben.iter(|| Duration::saturating_seconds_f64(-0.5));
+        ben.iter(|| SignedDuration::saturating_seconds_f64(0.5));
+        ben.iter(|| SignedDuration::saturating_seconds_f64(-0.5));
     }
 
     fn saturating_seconds_f32(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::saturating_seconds_f32(0.5));
-        ben.iter(|| Duration::saturating_seconds_f32(-0.5));
+        ben.iter(|| SignedDuration::saturating_seconds_f32(0.5));
+        ben.iter(|| SignedDuration::saturating_seconds_f32(-0.5));
     }
 
     fn checked_seconds_f64(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::checked_seconds_f64(0.5));
-        ben.iter(|| Duration::checked_seconds_f64(-0.5));
+        ben.iter(|| SignedDuration::checked_seconds_f64(0.5));
+        ben.iter(|| SignedDuration::checked_seconds_f64(-0.5));
     }
 
     fn checked_seconds_f32(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::checked_seconds_f32(0.5));
-        ben.iter(|| Duration::checked_seconds_f32(-0.5));
+        ben.iter(|| SignedDuration::checked_seconds_f32(0.5));
+        ben.iter(|| SignedDuration::checked_seconds_f32(-0.5));
     }
 
     fn milliseconds(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::milliseconds(1));
-        ben.iter(|| Duration::milliseconds(-1));
+        ben.iter(|| SignedDuration::milliseconds(1));
+        ben.iter(|| SignedDuration::milliseconds(-1));
     }
 
     fn microseconds(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::microseconds(1));
-        ben.iter(|| Duration::microseconds(-1));
+        ben.iter(|| SignedDuration::microseconds(1));
+        ben.iter(|| SignedDuration::microseconds(-1));
     }
 
     fn nanoseconds(ben: &mut Bencher<'_>) {
-        ben.iter(|| Duration::nanoseconds(1));
-        ben.iter(|| Duration::nanoseconds(-1));
+        ben.iter(|| SignedDuration::nanoseconds(1));
+        ben.iter(|| SignedDuration::nanoseconds(-1));
     }
 
     fn whole_weeks(ben: &mut Bencher<'_>) {
-        let a = Duration::weeks(1);
-        let b = Duration::weeks(-1);
-        let c = Duration::days(6);
-        let d = Duration::days(-6);
+        let a = SignedDuration::weeks(1);
+        let b = SignedDuration::weeks(-1);
+        let c = SignedDuration::days(6);
+        let d = SignedDuration::days(-6);
         ben.iter(|| a.whole_weeks());
         ben.iter(|| b.whole_weeks());
         ben.iter(|| c.whole_weeks());
@@ -169,10 +169,10 @@ setup_benchmark! {
     }
 
     fn whole_days(ben: &mut Bencher<'_>) {
-        let a = Duration::days(1);
-        let b = Duration::days(-1);
-        let c = Duration::hours(23);
-        let d = Duration::hours(-23);
+        let a = SignedDuration::days(1);
+        let b = SignedDuration::days(-1);
+        let c = SignedDuration::hours(23);
+        let d = SignedDuration::hours(-23);
         ben.iter(|| a.whole_days());
         ben.iter(|| b.whole_days());
         ben.iter(|| c.whole_days());
@@ -180,10 +180,10 @@ setup_benchmark! {
     }
 
     fn whole_hours(ben: &mut Bencher<'_>) {
-        let a = Duration::hours(1);
-        let b = Duration::hours(-1);
-        let c = Duration::minutes(59);
-        let d = Duration::minutes(-59);
+        let a = SignedDuration::hours(1);
+        let b = SignedDuration::hours(-1);
+        let c = SignedDuration::minutes(59);
+        let d = SignedDuration::minutes(-59);
         ben.iter(|| a.whole_hours());
         ben.iter(|| b.whole_hours());
         ben.iter(|| c.whole_hours());
@@ -298,7 +298,7 @@ setup_benchmark! {
 
     fn checked_add(ben: &mut Bencher<'_>) {
         let a = 5.seconds();
-        let b = Duration::MAX;
+        let b = SignedDuration::MAX;
         let c = (-5).seconds();
 
         let a2 = 5.seconds();
@@ -312,7 +312,7 @@ setup_benchmark! {
 
     fn checked_sub(ben: &mut Bencher<'_>) {
         let a = 5.seconds();
-        let b = Duration::MIN;
+        let b = SignedDuration::MIN;
         let c = 5.seconds();
 
         let a2 = 5.seconds();
@@ -326,7 +326,7 @@ setup_benchmark! {
 
     fn checked_mul(ben: &mut Bencher<'_>) {
         let a = 5.seconds();
-        let b = Duration::MAX;
+        let b = SignedDuration::MAX;
         ben.iter(|| a.checked_mul(2));
         ben.iter(|| b.checked_mul(2));
     }
@@ -339,8 +339,8 @@ setup_benchmark! {
 
     fn saturating_add(ben: &mut Bencher<'_>) {
         let a = 5.seconds();
-        let b = Duration::MAX;
-        let c = Duration::MIN;
+        let b = SignedDuration::MAX;
+        let c = SignedDuration::MIN;
         let d = (-5).seconds();
 
         let a2 = 5.seconds();
@@ -356,8 +356,8 @@ setup_benchmark! {
 
     fn saturating_sub(ben: &mut Bencher<'_>) {
         let a = 5.seconds();
-        let b = Duration::MIN;
-        let c = Duration::MAX;
+        let b = SignedDuration::MIN;
+        let c = SignedDuration::MAX;
         let d = 5.seconds();
 
         let a2 = 5.seconds();
@@ -375,10 +375,10 @@ setup_benchmark! {
         let a = 5.seconds();
         let b = 5.seconds();
         let c = 5.seconds();
-        let d = Duration::MAX;
-        let e = Duration::MIN;
-        let f = Duration::MAX;
-        let g = Duration::MIN;
+        let d = SignedDuration::MAX;
+        let e = SignedDuration::MIN;
+        let f = SignedDuration::MAX;
+        let g = SignedDuration::MIN;
 
         ben.iter(|| a.saturating_mul(2));
         ben.iter(|| b.saturating_mul(-2));
@@ -392,8 +392,8 @@ setup_benchmark! {
     fn try_from_std_duration(ben: &mut Bencher<'_>) {
         let a = 0.std_seconds();
         let b = 1.std_seconds();
-        ben.iter(|| Duration::try_from(a));
-        ben.iter(|| Duration::try_from(b));
+        ben.iter(|| SignedDuration::try_from(a));
+        ben.iter(|| SignedDuration::try_from(b));
     }
 
     fn try_to_std_duration(ben: &mut Bencher<'_>) {

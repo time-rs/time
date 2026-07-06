@@ -24,7 +24,7 @@ use crate::num_fmt::{four_to_six_digits, str_from_raw_parts, two_digits_zero_pad
 use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::{days_in_month_leap, range_validated, weeks_in_year};
-use crate::{Duration, Month, PlainDateTime, Time, Weekday, error, hint};
+use crate::{Month, PlainDateTime, SignedDuration, Time, Weekday, error, hint};
 
 type Year = ri32<MIN_YEAR, MAX_YEAR>;
 
@@ -806,7 +806,7 @@ impl Date {
     /// );
     /// ```
     #[inline]
-    pub const fn checked_add(self, duration: Duration) -> Option<Self> {
+    pub const fn checked_add(self, duration: SignedDuration) -> Option<Self> {
         let whole_days = duration.whole_days();
         if whole_days < i32::MIN as i64 || whole_days > i32::MAX as i64 {
             return None;
@@ -928,7 +928,7 @@ impl Date {
     /// );
     /// ```
     #[inline]
-    pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
+    pub const fn checked_sub(self, duration: SignedDuration) -> Option<Self> {
         let whole_days = duration.whole_days();
         if whole_days < i32::MIN as i64 || whole_days > i32::MAX as i64 {
             return None;
@@ -1035,7 +1035,7 @@ impl Date {
             }
         };
 
-        self.checked_add(Duration::days(day_diff))
+        self.checked_add(SignedDuration::days(day_diff))
     }
 
     /// Calculates the first occurrence of a weekday that is strictly earlier than a given `Date`.
@@ -1055,7 +1055,7 @@ impl Date {
             }
         };
 
-        self.checked_sub(Duration::days(day_diff))
+        self.checked_sub(SignedDuration::days(day_diff))
     }
 
     /// Calculates the `n`th occurrence of a weekday that is strictly later than a given `Date`.
@@ -1067,7 +1067,7 @@ impl Date {
         }
 
         const_try_opt!(self.checked_next_occurrence(weekday))
-            .checked_add(Duration::weeks(n as i64 - 1))
+            .checked_add(SignedDuration::weeks(n as i64 - 1))
     }
 
     /// Calculates the `n`th occurrence of a weekday that is strictly earlier than a given `Date`.
@@ -1079,7 +1079,7 @@ impl Date {
         }
 
         const_try_opt!(self.checked_prev_occurrence(weekday))
-            .checked_sub(Duration::weeks(n as i64 - 1))
+            .checked_sub(SignedDuration::weeks(n as i64 - 1))
     }
 
     /// Computes `self + duration`, saturating value on overflow.
@@ -1112,7 +1112,7 @@ impl Date {
     /// );
     /// ```
     #[inline]
-    pub const fn saturating_add(self, duration: Duration) -> Self {
+    pub const fn saturating_add(self, duration: SignedDuration) -> Self {
         if let Some(datetime) = self.checked_add(duration) {
             datetime
         } else if duration.is_negative() {
@@ -1153,7 +1153,7 @@ impl Date {
     /// );
     /// ```
     #[inline]
-    pub const fn saturating_sub(self, duration: Duration) -> Self {
+    pub const fn saturating_sub(self, duration: SignedDuration) -> Self {
         if let Some(datetime) = self.checked_sub(duration) {
             datetime
         } else if duration.is_negative() {
@@ -1633,7 +1633,7 @@ impl fmt::Debug for Date {
     }
 }
 
-impl Add<Duration> for Date {
+impl Add<SignedDuration> for Date {
     type Output = Self;
 
     /// # Panics
@@ -1641,7 +1641,7 @@ impl Add<Duration> for Date {
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add(self, duration: Duration) -> Self::Output {
+    fn add(self, duration: SignedDuration) -> Self::Output {
         self.checked_add(duration)
             .expect("overflow adding duration to date")
     }
@@ -1661,13 +1661,13 @@ impl Add<StdDuration> for Date {
     }
 }
 
-impl AddAssign<Duration> for Date {
+impl AddAssign<SignedDuration> for Date {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add_assign(&mut self, rhs: Duration) {
+    fn add_assign(&mut self, rhs: SignedDuration) {
         *self = *self + rhs;
     }
 }
@@ -1683,7 +1683,7 @@ impl AddAssign<StdDuration> for Date {
     }
 }
 
-impl Sub<Duration> for Date {
+impl Sub<SignedDuration> for Date {
     type Output = Self;
 
     /// # Panics
@@ -1691,7 +1691,7 @@ impl Sub<Duration> for Date {
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub(self, duration: Duration) -> Self::Output {
+    fn sub(self, duration: SignedDuration) -> Self::Output {
         self.checked_sub(duration)
             .expect("overflow subtracting duration from date")
     }
@@ -1711,13 +1711,13 @@ impl Sub<StdDuration> for Date {
     }
 }
 
-impl SubAssign<Duration> for Date {
+impl SubAssign<SignedDuration> for Date {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub_assign(&mut self, rhs: Duration) {
+    fn sub_assign(&mut self, rhs: SignedDuration) {
         *self = *self - rhs;
     }
 }
@@ -1734,10 +1734,10 @@ impl SubAssign<StdDuration> for Date {
 }
 
 impl Sub for Date {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, other: Self) -> Self::Output {
-        Duration::days((self.to_julian_day() - other.to_julian_day()).widen())
+        SignedDuration::days((self.to_julian_day() - other.to_julian_day()).widen())
     }
 }

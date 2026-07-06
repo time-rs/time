@@ -4,8 +4,8 @@ use rand08::Rng;
 use rand08::distributions::{Distribution, Standard};
 
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
-    Weekday,
+    Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, Timestamp, UtcDateTime,
+    UtcOffset, Weekday,
 };
 
 impl Distribution<Time> for Standard {
@@ -81,13 +81,13 @@ impl Distribution<Timestamp> for Standard {
     }
 }
 
-impl Distribution<Duration> for Standard {
+impl Distribution<SignedDuration> for Standard {
     #[inline]
-    fn sample<R>(&self, rng: &mut R) -> Duration
+    fn sample<R>(&self, rng: &mut R) -> SignedDuration
     where
         R: Rng + ?Sized,
     {
-        Duration::new_ranged(rng.r#gen(), rng.r#gen())
+        SignedDuration::new_ranged(rng.r#gen(), rng.r#gen())
     }
 }
 

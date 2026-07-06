@@ -24,7 +24,7 @@ use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::days_in_year;
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, UtcOffset, Weekday, error,
+    Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, UtcOffset, Weekday, error,
 };
 
 /// The Julian day of the Unix epoch.
@@ -183,10 +183,10 @@ impl UtcDateTime {
     /// following:
     ///
     /// ```rust
-    /// # use time::{Duration, UtcDateTime, ext::NumericalDuration};
+    /// # use time::{SignedDuration, UtcDateTime, ext::NumericalDuration};
     /// let (timestamp, nanos) = (1, 500_000_000);
     /// assert_eq!(
-    ///     UtcDateTime::from_unix_timestamp(timestamp)? + Duration::nanoseconds(nanos),
+    ///     UtcDateTime::from_unix_timestamp(timestamp)? + SignedDuration::nanoseconds(nanos),
     ///     UtcDateTime::UNIX_EPOCH + 1.5.seconds()
     /// );
     /// # Ok::<_, time::Error>(())
@@ -776,7 +776,7 @@ impl UtcDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn checked_add(self, duration: Duration) -> Option<Self> {
+    pub const fn checked_add(self, duration: SignedDuration) -> Option<Self> {
         Some(Self::from_plain(const_try_opt!(
             self.inner.checked_add(duration)
         )))
@@ -795,7 +795,7 @@ impl UtcDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
+    pub const fn checked_sub(self, duration: SignedDuration) -> Option<Self> {
         Some(Self::from_plain(const_try_opt!(
             self.inner.checked_sub(duration)
         )))
@@ -820,7 +820,7 @@ impl UtcDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn saturating_add(self, duration: Duration) -> Self {
+    pub const fn saturating_add(self, duration: SignedDuration) -> Self {
         Self::from_plain(self.inner.saturating_add(duration))
     }
 
@@ -843,7 +843,7 @@ impl UtcDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn saturating_sub(self, duration: Duration) -> Self {
+    pub const fn saturating_sub(self, duration: SignedDuration) -> Self {
         Self::from_plain(self.inner.saturating_sub(duration))
     }
 }
@@ -1312,7 +1312,7 @@ impl fmt::Debug for UtcDateTime {
     }
 }
 
-impl Add<Duration> for UtcDateTime {
+impl Add<SignedDuration> for UtcDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1320,7 +1320,7 @@ impl Add<Duration> for UtcDateTime {
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add(self, duration: Duration) -> Self::Output {
+    fn add(self, duration: SignedDuration) -> Self::Output {
         self.inner.add(duration).as_utc()
     }
 }
@@ -1338,13 +1338,13 @@ impl Add<StdDuration> for UtcDateTime {
     }
 }
 
-impl AddAssign<Duration> for UtcDateTime {
+impl AddAssign<SignedDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add_assign(&mut self, rhs: Duration) {
+    fn add_assign(&mut self, rhs: SignedDuration) {
         self.inner.add_assign(rhs);
     }
 }
@@ -1360,7 +1360,7 @@ impl AddAssign<StdDuration> for UtcDateTime {
     }
 }
 
-impl Sub<Duration> for UtcDateTime {
+impl Sub<SignedDuration> for UtcDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1368,7 +1368,7 @@ impl Sub<Duration> for UtcDateTime {
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub(self, rhs: Duration) -> Self::Output {
+    fn sub(self, rhs: SignedDuration) -> Self::Output {
         self.checked_sub(rhs)
             .expect("resulting value is out of range")
     }
@@ -1387,13 +1387,13 @@ impl Sub<StdDuration> for UtcDateTime {
     }
 }
 
-impl SubAssign<Duration> for UtcDateTime {
+impl SubAssign<SignedDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub_assign(&mut self, rhs: Duration) {
+    fn sub_assign(&mut self, rhs: SignedDuration) {
         self.inner.sub_assign(rhs);
     }
 }
@@ -1410,7 +1410,7 @@ impl SubAssign<StdDuration> for UtcDateTime {
 }
 
 impl Sub for UtcDateTime {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, rhs: Self) -> Self::Output {

@@ -9,7 +9,7 @@ use serde_test2::{
 use time::Month::*;
 use time::Weekday::*;
 use time::macros::{date, datetime, offset, time};
-use time::{Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, UtcOffset, Weekday};
+use time::{Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, UtcOffset, Weekday};
 
 mod error_conditions;
 mod iso8601;
@@ -158,7 +158,7 @@ mod timestamps;
 #[case(offset!(-23:58:59).readable(), &[Token::BorrowedStr("-23:58:59")])]
 #[case(offset!(+23:58:59).readable(), &[Token::BorrowedStr("+23:58:59")])]
 #[case(
-    Duration::MIN.compact(),
+    SignedDuration::MIN.compact(),
     &[
         Token::Tuple { len: 2 },
         Token::I64(i64::MIN),
@@ -167,7 +167,7 @@ mod timestamps;
     ],
 )]
 #[case(
-    Duration::MAX.compact(),
+    SignedDuration::MAX.compact(),
     &[
         Token::Tuple { len: 2 },
         Token::I64(i64::MAX),
@@ -175,11 +175,11 @@ mod timestamps;
         Token::TupleEnd,
     ],
 )]
-#[case(Duration::MIN.readable(), &[Token::BorrowedStr("-9223372036854775808.999999999")])]
-#[case(Duration::MAX.readable(), &[Token::BorrowedStr("9223372036854775807.999999999")])]
-#[case(Duration::ZERO.readable(), &[Token::BorrowedStr("0.000000000")])]
-#[case(Duration::nanoseconds(123).readable(), &[Token::BorrowedStr("0.000000123")])]
-#[case(Duration::nanoseconds(-123).readable(), &[Token::BorrowedStr("-0.000000123")])]
+#[case(SignedDuration::MIN.readable(), &[Token::BorrowedStr("-9223372036854775808.999999999")])]
+#[case(SignedDuration::MAX.readable(), &[Token::BorrowedStr("9223372036854775807.999999999")])]
+#[case(SignedDuration::ZERO.readable(), &[Token::BorrowedStr("0.000000000")])]
+#[case(SignedDuration::nanoseconds(123).readable(), &[Token::BorrowedStr("0.000000123")])]
+#[case(SignedDuration::nanoseconds(-123).readable(), &[Token::BorrowedStr("-0.000000123")])]
 #[case(Monday.compact(), &[Token::U8(1)])]
 #[case(Tuesday.compact(), &[Token::U8(2)])]
 #[case(Wednesday.compact(), &[Token::U8(3)])]
@@ -421,29 +421,29 @@ where
     "invalid offset hour, expected an in-range value",
 )]
 #[case(
-    PhantomData::<Readable<Duration>>,
+    PhantomData::<Readable<SignedDuration>>,
     &[Token::BorrowedStr("x")],
     r#"invalid value: string "x", expected a decimal point"#,
 )]
 #[case(
-    PhantomData::<Readable<Duration>>,
+    PhantomData::<Readable<SignedDuration>>,
     &[Token::BorrowedStr("x.0")],
     r#"invalid value: string "x", expected seconds"#,
 )]
 #[case(
-    PhantomData::<Readable<Duration>>,
+    PhantomData::<Readable<SignedDuration>>,
     &[Token::BorrowedStr("0.x")],
     r#"invalid value: string "x", expected nanoseconds"#,
 )]
 #[case(
-    PhantomData::<Readable<Duration>>,
+    PhantomData::<Readable<SignedDuration>>,
     &[Token::Bool(false)],
-    "invalid type: boolean `false`, expected a `Duration`",
+    "invalid type: boolean `false`, expected a `SignedDuration`",
 )]
 #[case(
-    PhantomData::<Compact<Duration>>,
+    PhantomData::<Compact<SignedDuration>>,
     &[Token::Bool(false)],
-    "invalid type: boolean `false`, expected a `Duration`",
+    "invalid type: boolean `false`, expected a `SignedDuration`",
 )]
 #[case(
     PhantomData::<Compact<Weekday>>,
@@ -903,12 +903,12 @@ fn deserialize_error<T>(
     "expected offset hours",
 )]
 #[case(
-    PhantomData::<Compact<Duration>>,
+    PhantomData::<Compact<SignedDuration>>,
     &[Token::Tuple { len: 2 }, Token::TupleEnd],
     "expected seconds",
 )]
 #[case(
-    PhantomData::<Compact<Duration>>,
+    PhantomData::<Compact<SignedDuration>>,
     &[
         Token::Tuple { len: 2 },
         Token::I64(i64::MAX),
@@ -917,12 +917,12 @@ fn deserialize_error<T>(
     "expected nanoseconds",
 )]
 #[case(
-    PhantomData::<Readable<Duration>>,
+    PhantomData::<Readable<SignedDuration>>,
     &[Token::Tuple { len: 2 }, Token::TupleEnd],
     "expected seconds",
 )]
 #[case(
-    PhantomData::<Readable<Duration>>,
+    PhantomData::<Readable<SignedDuration>>,
     &[
         Token::Tuple { len: 2 },
         Token::I64(i64::MAX),

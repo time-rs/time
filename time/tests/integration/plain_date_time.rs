@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use rstest::rstest;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time};
-use time::{Date, Duration, Month, PlainDateTime, Time, UtcOffset, Weekday};
+use time::{Date, Month, PlainDateTime, SignedDuration, Time, UtcOffset, Weekday};
 
 #[rstest]
 #[case(PlainDateTime::new(date!(2019-01-01), time!(0:00)), datetime!(2019-01-01 0:00))]
@@ -401,7 +401,7 @@ fn truncate_to_microsecond(#[case] datetime: PlainDateTime, #[case] expected: Pl
 #[case(datetime!(1999-12-31 23:00), 1.hours(), datetime!(2000-01-01 0:00))]
 fn add_duration(
     #[case] datetime: PlainDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: PlainDateTime,
 ) {
     assert_eq!(datetime + duration, expected);
@@ -426,7 +426,7 @@ fn add_std_duration(
 #[case(datetime!(2020-01-01 0:00:01), (-2).seconds(), datetime!(2019-12-31 23:59:59))]
 fn add_assign_duration(
     #[case] mut datetime: PlainDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: PlainDateTime,
 ) {
     datetime += duration;
@@ -454,7 +454,7 @@ fn add_assign_std_duration(
 #[case(datetime!(1999-12-31 23:00), (-1).hours(), datetime!(2000-01-01 0:00))]
 fn sub_duration(
     #[case] datetime: PlainDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: PlainDateTime,
 ) {
     assert_eq!(datetime - duration, expected);
@@ -479,7 +479,7 @@ fn sub_std_duration(
 #[case(datetime!(2019-12-31 23:59:59), (-2).seconds(), datetime!(2020-01-01 0:00:01))]
 fn sub_assign_duration(
     #[case] mut datetime: PlainDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: PlainDateTime,
 ) {
     datetime -= duration;
@@ -507,7 +507,7 @@ fn sub_assign_std_duration(
 fn sub_datetime(
     #[case] lhs: PlainDateTime,
     #[case] rhs: PlainDateTime,
-    #[case] expected: Duration,
+    #[case] expected: SignedDuration,
 ) {
     assert_eq!(lhs - rhs, expected);
 }
@@ -555,14 +555,14 @@ fn ord(
 #[case(datetime!(2021-10-25 14:01:53.45), (-2).days(), datetime!(2021-10-23 14:01:53.45))]
 #[case(datetime!(2021-10-25 14:01:53.45), (-1).weeks(), datetime!(2021-10-18 14:01:53.45))]
 #[case::underflow(PlainDateTime::MIN, (-1).nanoseconds(), None)]
-#[case::underflow(PlainDateTime::MIN, Duration::MIN, None)]
+#[case::underflow(PlainDateTime::MIN, SignedDuration::MIN, None)]
 #[case::underflow(PlainDateTime::MIN, (-530).weeks(), None)]
 #[case::overflow(PlainDateTime::MAX, 1.nanoseconds(), None)]
-#[case::overflow(PlainDateTime::MAX, Duration::MAX, None)]
+#[case::overflow(PlainDateTime::MAX, SignedDuration::MAX, None)]
 #[case::overflow(PlainDateTime::MAX, 530.weeks(), None)]
 fn checked_add_duration(
     #[case] datetime: PlainDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: impl Into<Option<PlainDateTime>>,
 ) {
     assert_eq!(datetime.checked_add(duration), expected.into());
@@ -586,14 +586,14 @@ fn checked_add_duration(
 #[case(datetime!(2021-10-25 14:01:53.45), 2.days(), datetime!(2021-10-23 14:01:53.45))]
 #[case(datetime!(2021-10-25 14:01:53.45), 1.weeks(), datetime!(2021-10-18 14:01:53.45))]
 #[case::underflow(PlainDateTime::MIN, 1.nanoseconds(), None)]
-#[case::underflow(PlainDateTime::MIN, Duration::MIN, None)]
+#[case::underflow(PlainDateTime::MIN, SignedDuration::MIN, None)]
 #[case::underflow(PlainDateTime::MIN, 530.weeks(), None)]
 #[case::overflow(PlainDateTime::MAX, (-1).nanoseconds(), None)]
-#[case::overflow(PlainDateTime::MAX, Duration::MAX, None)]
+#[case::overflow(PlainDateTime::MAX, SignedDuration::MAX, None)]
 #[case::overflow(PlainDateTime::MAX, (-530).weeks(), None)]
 fn checked_sub_duration(
     #[case] datetime: PlainDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: impl Into<Option<PlainDateTime>>,
 ) {
     assert_eq!(datetime.checked_sub(duration), expected.into());
@@ -604,11 +604,11 @@ fn checked_sub_duration(
 #[case(datetime!(2021-11-12 17:47), (-2).days(), datetime!(2021-11-10 17:47))]
 #[case::underflow(PlainDateTime::MIN, (-10).days(), PlainDateTime::MIN)]
 #[case::overflow(PlainDateTime::MAX, 10.days(), PlainDateTime::MAX)]
-#[case::zero_duration_min(PlainDateTime::MIN, Duration::ZERO, PlainDateTime::MIN)]
-#[case::zero_duration_max(PlainDateTime::MAX, Duration::ZERO, PlainDateTime::MAX)]
+#[case::zero_duration_min(PlainDateTime::MIN, SignedDuration::ZERO, PlainDateTime::MIN)]
+#[case::zero_duration_max(PlainDateTime::MAX, SignedDuration::ZERO, PlainDateTime::MAX)]
 fn saturating_add_duration(
     #[case] datetime: PlainDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: PlainDateTime,
 ) {
     assert_eq!(datetime.saturating_add(duration), expected);
@@ -619,11 +619,11 @@ fn saturating_add_duration(
 #[case(datetime!(2021-11-12 17:47), (-2).days(), datetime!(2021-11-14 17:47))]
 #[case::underflow(PlainDateTime::MIN, 10.days(), PlainDateTime::MIN)]
 #[case::overflow(PlainDateTime::MAX, (-10).days(), PlainDateTime::MAX)]
-#[case::zero_duration_min(PlainDateTime::MIN, Duration::ZERO, PlainDateTime::MIN)]
-#[case::zero_duration_max(PlainDateTime::MAX, Duration::ZERO, PlainDateTime::MAX)]
+#[case::zero_duration_min(PlainDateTime::MIN, SignedDuration::ZERO, PlainDateTime::MIN)]
+#[case::zero_duration_max(PlainDateTime::MAX, SignedDuration::ZERO, PlainDateTime::MAX)]
 fn saturating_sub_duration(
     #[case] datetime: PlainDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: PlainDateTime,
 ) {
     assert_eq!(datetime.saturating_sub(duration), expected);

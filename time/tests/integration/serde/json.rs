@@ -7,7 +7,7 @@ use serde_test2::Configure;
 use time::Month::*;
 use time::Weekday::*;
 use time::macros::{date, datetime, time};
-use time::{Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, Weekday};
+use time::{Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, Weekday};
 
 enum Format {
     Compact,
@@ -27,8 +27,8 @@ use Format::*;
 #[case(datetime!(2022-05-20 12:40:20).readable(), r#""2022-05-20 12:40:20.0""#)]
 #[case(datetime!(2022-05-20 12:40:20 UTC).compact(), "[2022,140,12,40,20,0,0,0,0]")]
 #[case(datetime!(2022-05-20 12:40:20 UTC).readable(), r#""2022-05-20 12:40:20.0 +00:00:00""#)]
-#[case(Duration::new(50, 0).compact(), "[50,0]")]
-#[case(Duration::new(50, 0).readable(), r#""50.000000000""#)]
+#[case(SignedDuration::new(50, 0).compact(), "[50,0]")]
+#[case(SignedDuration::new(50, 0).readable(), r#""50.000000000""#)]
 #[case(date!(2022-04-05).compact(), "[2022,95]")]
 #[case(date!(2022-04-05).readable(), r#""2022-04-05""#)]
 fn serialize<T>(#[case] value: T, #[case] expected: &str)
@@ -87,9 +87,9 @@ where
     r#""2022-05-20 12:40:20.0 +00:00:00""#,
     datetime!(2022-05-20 12:40:20 UTC),
 )]
-#[case(PhantomData::<Duration>, Compact, "[50,0]", Duration::new(50, 0))]
-#[case(PhantomData::<Duration>, Readable, "[50,0]", Duration::new(50, 0))]
-#[case(PhantomData::<Duration>, Readable, r#""50.000000000""#, Duration::new(50, 0))]
+#[case(PhantomData::<SignedDuration>, Compact, "[50,0]", SignedDuration::new(50, 0))]
+#[case(PhantomData::<SignedDuration>, Readable, "[50,0]", SignedDuration::new(50, 0))]
+#[case(PhantomData::<SignedDuration>, Readable, r#""50.000000000""#, SignedDuration::new(50, 0))]
 #[case(PhantomData::<Date>, Compact, "[2022,95]", date!(2022-04-05))]
 #[case(PhantomData::<Date>, Readable, "[2022,95]", date!(2022-04-05))]
 #[case(PhantomData::<Date>, Readable, r#""2022-04-05""#, date!(2022-04-05))]

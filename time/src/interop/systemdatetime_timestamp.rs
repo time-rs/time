@@ -7,10 +7,10 @@ use num_conv::prelude::*;
 
 use crate::ext::SystemTimeExt;
 use crate::unit::*;
-use crate::{Duration, Timestamp};
+use crate::{SignedDuration, Timestamp};
 
 impl Sub<SystemTime> for Timestamp {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, rhs: SystemTime) -> Self::Output {
@@ -23,7 +23,7 @@ impl Sub<SystemTime> for Timestamp {
 }
 
 impl Sub<Timestamp> for SystemTime {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, rhs: Timestamp) -> Self::Output {

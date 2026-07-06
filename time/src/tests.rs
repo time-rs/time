@@ -30,7 +30,7 @@ use rstest::rstest;
 
 use crate::ext::DigitCount;
 use crate::parsing::combinator::rfc::iso8601;
-use crate::{duration, format_description, parsing};
+use crate::{format_description, parsing, signed_duration};
 
 #[rstest]
 #[case(1, 1)]
@@ -75,7 +75,7 @@ fn digit_count_u32(#[case] input: u32, #[case] expected: u8) {
 }
 
 #[rstest]
-#[case(duration::Padding::Optimize)]
+#[case(signed_duration::Padding::Optimize)]
 #[case(parsing::ParsedItem(b"", 0))]
 #[case(format_description::Period::Am)]
 #[case(iso8601::ExtendedKind::Basic)]

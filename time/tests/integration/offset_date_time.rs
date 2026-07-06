@@ -6,7 +6,8 @@ use time::Weekday::*;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time, utc_datetime};
 use time::{
-    Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+    Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, UtcDateTime, UtcOffset,
+    Weekday,
 };
 
 #[rstest]
@@ -625,8 +626,8 @@ fn arithmetic_regression() {
         .midnight()
         .assume_offset(offset!(+12:00:01));
 
-    assert_eq!(val + Duration::ZERO, val);
-    assert_eq!(val - Duration::ZERO, val);
+    assert_eq!(val + SignedDuration::ZERO, val);
+    assert_eq!(val - SignedDuration::ZERO, val);
     assert_eq!(val + StdDuration::from_secs(0), val);
     assert_eq!(val - StdDuration::from_secs(0), val);
 }
@@ -639,7 +640,7 @@ fn arithmetic_regression() {
 #[case(datetime!(1999-12-31 23:00 UTC), 1.hours(), datetime!(2000-01-01 0:00 UTC))]
 fn add_duration(
     #[case] input: OffsetDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: OffsetDateTime,
 ) {
     assert_eq!(input + duration, expected);
@@ -664,7 +665,7 @@ fn add_std_duration(
 #[case(datetime!(2020-01-01 0:00:01 UTC), (-2).seconds(), datetime!(2019-12-31 23:59:59 UTC))]
 fn add_assign_duration(
     #[case] mut input: OffsetDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: OffsetDateTime,
 ) {
     input += duration;
@@ -692,7 +693,7 @@ fn add_assign_std_duration(
 #[case(datetime!(1999-12-31 23:00 UTC), (-1).hours(), datetime!(2000-01-01 0:00 UTC))]
 fn sub_duration(
     #[case] input: OffsetDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: OffsetDateTime,
 ) {
     assert_eq!(input - duration, expected);
@@ -717,7 +718,7 @@ fn sub_std_duration(
 #[case(datetime!(2019-12-31 23:59:59 UTC), (-2).seconds(), datetime!(2020-01-01 0:00:01 UTC))]
 fn sub_assign_duration(
     #[case] mut input: OffsetDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: OffsetDateTime,
 ) {
     input -= duration;
@@ -765,7 +766,7 @@ fn sub_assign_std_duration(
 )]
 fn std_add_duration(
     #[case] input: SystemTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: SystemTime,
 ) {
     assert_eq!(input + duration, expected);
@@ -786,7 +787,7 @@ fn std_add_duration(
 )]
 fn std_add_assign_duration(
     #[case] mut input: SystemTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: OffsetDateTime,
 ) {
     input += duration;
@@ -816,7 +817,7 @@ fn std_add_assign_duration(
 )]
 fn std_sub_duration(
     #[case] input: SystemTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: SystemTime,
 ) {
     assert_eq!(input - duration, expected);
@@ -837,7 +838,7 @@ fn std_sub_duration(
 )]
 fn std_sub_assign_duration(
     #[case] mut input: SystemTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: OffsetDateTime,
 ) {
     input -= duration;
@@ -852,9 +853,13 @@ fn std_sub_assign_duration(
 #[case(
     datetime!(+999_999-12-31 23:59:59.999_999_999 -23:59:59),
     datetime!(-999_999-01-01 0:00 +23:59:59),
-    Duration::new(63_113_872_550_397, 999_999_999),
+    SignedDuration::new(63_113_872_550_397, 999_999_999),
 )]
-fn sub_self(#[case] a: OffsetDateTime, #[case] b: OffsetDateTime, #[case] expected: Duration) {
+fn sub_self(
+    #[case] a: OffsetDateTime,
+    #[case] b: OffsetDateTime,
+    #[case] expected: SignedDuration,
+) {
     assert_eq!(a - b, expected);
 }
 
@@ -874,7 +879,7 @@ fn sub_self(#[case] a: OffsetDateTime, #[case] b: OffsetDateTime, #[case] expect
 fn std_sub(
     #[case] system: SystemTime,
     #[case] datetime: OffsetDateTime,
-    #[case] expected: Duration,
+    #[case] expected: SignedDuration,
 ) {
     assert_eq!(system - datetime, expected);
 }
@@ -892,7 +897,11 @@ fn std_sub(
     SystemTime::from(datetime!(2020-01-01 0:00 UTC)),
     (-1).days(),
 )]
-fn sub_std(#[case] input: OffsetDateTime, #[case] system: SystemTime, #[case] expected: Duration) {
+fn sub_std(
+    #[case] input: OffsetDateTime,
+    #[case] system: SystemTime,
+    #[case] expected: SignedDuration,
+) {
     assert_eq!(input - system, expected);
 }
 
@@ -1098,24 +1107,24 @@ fn to_std(#[case] input: OffsetDateTime, #[case] expected: SystemTime) {
 #[case(datetime!(2021-10-25 14:01:53.45 UTC), (-2).days(), datetime!(2021-10-23 14:01:53.45 UTC))]
 #[case(datetime!(2021-10-25 14:01:53.45 UTC), (-1).weeks(), datetime!(2021-10-18 14:01:53.45 UTC))]
 #[case(datetime!(-999_999-01-01 0:00 UTC), (-1).nanoseconds(), None)]
-#[case(datetime!(-999_999-01-01 0:00 UTC), Duration::MIN, None)]
+#[case(datetime!(-999_999-01-01 0:00 UTC), SignedDuration::MIN, None)]
 #[case(datetime!(-999_990-01-01 0:00 UTC), (-530).weeks(), None)]
 #[case(datetime!(+999_999-12-31 23:59:59.999_999_999 UTC), 1.nanoseconds(), None)]
-#[case(datetime!(+999_999-12-31 23:59:59.999_999_999 UTC), Duration::MAX, None)]
+#[case(datetime!(+999_999-12-31 23:59:59.999_999_999 UTC), SignedDuration::MAX, None)]
 #[case(datetime!(+999_990-12-31 23:59:59.999_999_999 UTC), 530.weeks(), None)]
 #[case(
     datetime!(+999_999-12-31 23:59:59.999_999_999 -10:00),
-    Duration::ZERO,
+    SignedDuration::ZERO,
     datetime!(+999_999-12-31 23:59:59.999_999_999 -10:00),
 )]
 #[case(
     datetime!(-999_999-01-01 0:00 +10:00),
-    Duration::ZERO,
+    SignedDuration::ZERO,
     datetime!(-999_999-01-01 0:00 +10:00),
 )]
 fn checked_add_duration(
     #[case] input: OffsetDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: impl Into<Option<OffsetDateTime>>,
 ) {
     assert_eq!(input.checked_add(duration), expected.into());
@@ -1143,20 +1152,24 @@ fn checked_add_duration(
 #[case(datetime!(2021-10-25 14:01:53.45 UTC), 2.days(), datetime!(2021-10-23 14:01:53.45 UTC))]
 #[case(datetime!(2021-10-25 14:01:53.45 UTC), 1.weeks(), datetime!(2021-10-18 14:01:53.45 UTC))]
 #[case(datetime!(-999_999-01-01 0:00 UTC), 1.nanoseconds(), None)]
-#[case(datetime!(-999_999-01-01 0:00 UTC), Duration::MAX, None)]
+#[case(datetime!(-999_999-01-01 0:00 UTC), SignedDuration::MAX, None)]
 #[case(datetime!(-999_990-01-01 0:00 UTC), 530.weeks(), None)]
 #[case(datetime!(+999_999-12-31 23:59:59.999_999_999 UTC), (-1).nanoseconds(), None)]
-#[case(datetime!(+999_999-12-31 23:59:59.999_999_999 UTC), Duration::MIN, None)]
+#[case(datetime!(+999_999-12-31 23:59:59.999_999_999 UTC), SignedDuration::MIN, None)]
 #[case(datetime!(+999_990-12-31 23:59:59.999_999_999 UTC), (-530).weeks(), None)]
 #[case(
     datetime!(+999_999-12-31 23:59:59.999_999_999 -10),
-    Duration::ZERO,
+    SignedDuration::ZERO,
     datetime!(+999_999-12-31 23:59:59.999_999_999 -10),
 )]
-#[case(datetime!(-999_999-01-01 0:00 +10), Duration::ZERO, datetime!(-999_999-01-01 0:00 +10))]
+#[case(
+    datetime!(-999_999-01-01 0:00 +10),
+    SignedDuration::ZERO,
+    datetime!(-999_999-01-01 0:00 +10),
+)]
 fn checked_sub_duration(
     #[case] input: OffsetDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: impl Into<Option<OffsetDateTime>>,
 ) {
     assert_eq!(input.checked_sub(duration), expected.into());
@@ -1171,15 +1184,15 @@ fn checked_sub_duration(
     10.days(),
     datetime!(+999999-12-31 23:59:59.999_999_999 +10),
 )]
-#[case(datetime!(-999999-01-01 0:00 +10), Duration::ZERO, datetime!(-999999-01-01 0:00 +10))]
+#[case(datetime!(-999999-01-01 0:00 +10), SignedDuration::ZERO, datetime!(-999999-01-01 0:00 +10))]
 #[case(
     datetime!(+999999-12-31 23:59:59.999_999_999 +10),
-    Duration::ZERO,
+    SignedDuration::ZERO,
     datetime!(+999999-12-31 23:59:59.999_999_999 +10),
 )]
 fn saturating_add_duration(
     #[case] input: OffsetDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: OffsetDateTime,
 ) {
     assert_eq!(input.saturating_add(duration), expected);
@@ -1194,15 +1207,15 @@ fn saturating_add_duration(
     (-10).days(),
     datetime!(+999999-12-31 23:59:59.999_999_999 +10),
 )]
-#[case(datetime!(-999999-01-01 0:00 +10), Duration::ZERO, datetime!(-999999-01-01 0:00 +10))]
+#[case(datetime!(-999999-01-01 0:00 +10), SignedDuration::ZERO, datetime!(-999999-01-01 0:00 +10))]
 #[case(
     datetime!(+999999-12-31 23:59:59.999_999_999 +10),
-    Duration::ZERO,
+    SignedDuration::ZERO,
     datetime!(+999999-12-31 23:59:59.999_999_999 +10),
 )]
 fn saturating_sub_duration(
     #[case] input: OffsetDateTime,
-    #[case] duration: Duration,
+    #[case] duration: SignedDuration,
     #[case] expected: OffsetDateTime,
 ) {
     assert_eq!(input.saturating_sub(duration), expected);

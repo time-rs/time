@@ -50,6 +50,8 @@ disallowed-types = [
     { path = "deranged::OptionRangedI64", reason = "use `Option_ri64`", replacement = "deranged::Option_ri64" },
     { path = "deranged::OptionRangedI128", reason = "use `Option_ri128`", replacement = "deranged::Option_ri128" },
     { path = "deranged::OptionRangedIsize", reason = "use `Option_risize`", replacement = "deranged::Option_risize" },
+    { path = "time::PrimitiveDateTime", reason = "use `PlainDateTime`", replacement = "time::PlainDateTime" },
+    { path = "time::Duration", reason = "use `SignedDuration`", replacement = "time::SignedDuration" },
 ]
 matches-for-let-else = "AllTypes"
 enforced-import-renames = [

@@ -3,7 +3,7 @@ use quickcheck::{Arbitrary, TestResult};
 use quickcheck_macros::quickcheck;
 use time::Weekday::*;
 use time::macros::{format_description, time};
-use time::{Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, UtcOffset, Weekday};
+use time::{Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, UtcOffset, Weekday};
 
 macro_rules! test_shrink {
     ($type:ty,
@@ -105,8 +105,8 @@ fn julian_day_roundtrip(d: Date) -> bool {
 }
 
 #[quickcheck]
-fn duration_roundtrip(d: Duration) -> bool {
-    Duration::new(d.whole_seconds(), d.subsec_nanoseconds()) == d
+fn duration_roundtrip(d: SignedDuration) -> bool {
+    SignedDuration::new(d.whole_seconds(), d.subsec_nanoseconds()) == d
 }
 
 #[quickcheck]
@@ -142,7 +142,7 @@ fn unix_timestamp_roundtrip(odt: OffsetDateTime) -> TestResult {
         Date::MIN | Date::MAX => TestResult::discard(),
         _ => TestResult::from_bool({
             // nanoseconds are not stored in the basic Unix timestamp
-            let odt = odt - Duration::nanoseconds(odt.nanosecond().into());
+            let odt = odt - SignedDuration::nanoseconds(odt.nanosecond().into());
             OffsetDateTime::from_unix_timestamp(odt.unix_timestamp()) == Ok(odt)
         }),
     }
@@ -263,10 +263,10 @@ fn time_duration_until_since_range(time_a: Time, time_b: Time) -> bool {
     let a_since_b = time_a.duration_since(time_b);
     let b_since_a = time_b.duration_since(time_a);
 
-    (Duration::ZERO..Duration::DAY).contains(&a_until_b)
-        && (Duration::ZERO..Duration::DAY).contains(&b_until_a)
-        && (Duration::ZERO..Duration::DAY).contains(&a_since_b)
-        && (Duration::ZERO..Duration::DAY).contains(&b_since_a)
+    (SignedDuration::ZERO..SignedDuration::DAY).contains(&a_until_b)
+        && (SignedDuration::ZERO..SignedDuration::DAY).contains(&b_until_a)
+        && (SignedDuration::ZERO..SignedDuration::DAY).contains(&a_since_b)
+        && (SignedDuration::ZERO..SignedDuration::DAY).contains(&b_since_a)
 }
 
 #[quickcheck]
@@ -325,12 +325,12 @@ fn odt_to_offset_no_panic(odt: OffsetDateTime, offset: UtcOffset) -> TestResult 
     if Date::MIN
         .midnight()
         .assume_utc()
-        .checked_add(Duration::seconds(offset_difference.widen()))
+        .checked_add(SignedDuration::seconds(offset_difference.widen()))
         .is_none()
         || Date::MAX
             .with_time(time!(23:59:59.999_999_999))
             .assume_utc()
-            .checked_add(Duration::seconds(offset_difference.widen()))
+            .checked_add(SignedDuration::seconds(offset_difference.widen()))
             .is_none()
     {
         return TestResult::discard();
@@ -346,12 +346,12 @@ fn odt_replace_offset_no_panic(odt: OffsetDateTime, offset: UtcOffset) -> TestRe
     if Date::MIN
         .midnight()
         .assume_offset(odt.offset())
-        .checked_add(Duration::seconds(offset.whole_seconds().widen()))
+        .checked_add(SignedDuration::seconds(offset.whole_seconds().widen()))
         .is_none()
         || Date::MAX
             .with_time(time!(23:59:59.999_999_999))
             .assume_offset(odt.offset())
-            .checked_add(Duration::seconds(offset.whole_seconds().widen()))
+            .checked_add(SignedDuration::seconds(offset.whole_seconds().widen()))
             .is_none()
     {
         return TestResult::discard();
@@ -365,8 +365,8 @@ fn odt_replace_offset_no_panic(odt: OffsetDateTime, offset: UtcOffset) -> TestRe
 test_shrink!(Date, date_can_shrink_year, year());
 test_shrink!(Date, date_can_shrink_ordinal, ordinal(), min = 1);
 
-test_shrink!(Duration, duration_can_shrink_seconds, whole_seconds());
-test_shrink!(Duration, duration_can_shrink_ns, subsec_nanoseconds());
+test_shrink!(SignedDuration, duration_can_shrink_seconds, whole_seconds());
+test_shrink!(SignedDuration, duration_can_shrink_ns, subsec_nanoseconds());
 
 test_shrink!(Time, time_can_shrink_hour, hour());
 test_shrink!(Time, time_can_shrink_minute, minute());

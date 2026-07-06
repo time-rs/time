@@ -234,8 +234,8 @@ use crate::format_description::__private::FormatDescriptionV3Inner;
 #[cfg(feature = "parsing")]
 use crate::format_description::{FormatDescriptionV3, modifier};
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
-    Weekday,
+    Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, Timestamp, UtcDateTime,
+    UtcOffset, Weekday,
 };
 
 /// The format used when serializing and deserializing a human-readable `Date`.
@@ -288,7 +288,7 @@ impl<'a> Deserialize<'a> for Date {
     }
 }
 
-impl Serialize for Duration {
+impl Serialize for SignedDuration {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -308,7 +308,7 @@ impl Serialize for Duration {
     }
 }
 
-impl<'a> Deserialize<'a> for Duration {
+impl<'a> Deserialize<'a> for SignedDuration {
     #[inline]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

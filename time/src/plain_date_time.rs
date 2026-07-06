@@ -22,7 +22,7 @@ use crate::num_fmt::str_from_raw_parts;
 #[cfg(feature = "parsing")]
 use crate::parsing::{Parsable, Parsed};
 use crate::{
-    Date, Duration, Month, OffsetDateTime, Time, UtcDateTime, UtcOffset, Weekday, error, util,
+    Date, Month, OffsetDateTime, SignedDuration, Time, UtcDateTime, UtcOffset, Weekday, error, util,
 };
 
 /// Combined date and time.
@@ -607,7 +607,7 @@ impl PlainDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn checked_add(self, duration: Duration) -> Option<Self> {
+    pub const fn checked_add(self, duration: SignedDuration) -> Option<Self> {
         let (date_adjustment, time) = self.time.adjusting_add(duration);
         let date = const_try_opt!(self.date.checked_add(duration));
 
@@ -638,7 +638,7 @@ impl PlainDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
+    pub const fn checked_sub(self, duration: SignedDuration) -> Option<Self> {
         let (date_adjustment, time) = self.time.adjusting_sub(duration);
         let date = const_try_opt!(self.date.checked_sub(duration));
 
@@ -673,7 +673,7 @@ impl PlainDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn saturating_add(self, duration: Duration) -> Self {
+    pub const fn saturating_add(self, duration: SignedDuration) -> Self {
         if let Some(datetime) = self.checked_add(duration) {
             datetime
         } else if duration.is_negative() {
@@ -704,7 +704,7 @@ impl PlainDateTime {
     /// );
     /// ```
     #[inline]
-    pub const fn saturating_sub(self, duration: Duration) -> Self {
+    pub const fn saturating_sub(self, duration: SignedDuration) -> Self {
         if let Some(datetime) = self.checked_sub(duration) {
             datetime
         } else if duration.is_negative() {
@@ -1184,7 +1184,7 @@ impl fmt::Debug for PlainDateTime {
     }
 }
 
-impl Add<Duration> for PlainDateTime {
+impl Add<SignedDuration> for PlainDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1192,7 +1192,7 @@ impl Add<Duration> for PlainDateTime {
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add(self, duration: Duration) -> Self::Output {
+    fn add(self, duration: SignedDuration) -> Self::Output {
         self.checked_add(duration)
             .expect("resulting value is out of range")
     }
@@ -1222,13 +1222,13 @@ impl Add<StdDuration> for PlainDateTime {
     }
 }
 
-impl AddAssign<Duration> for PlainDateTime {
+impl AddAssign<SignedDuration> for PlainDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn add_assign(&mut self, duration: Duration) {
+    fn add_assign(&mut self, duration: SignedDuration) {
         *self = *self + duration;
     }
 }
@@ -1244,7 +1244,7 @@ impl AddAssign<StdDuration> for PlainDateTime {
     }
 }
 
-impl Sub<Duration> for PlainDateTime {
+impl Sub<SignedDuration> for PlainDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1252,7 +1252,7 @@ impl Sub<Duration> for PlainDateTime {
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub(self, duration: Duration) -> Self::Output {
+    fn sub(self, duration: SignedDuration) -> Self::Output {
         self.checked_sub(duration)
             .expect("resulting value is out of range")
     }
@@ -1282,13 +1282,13 @@ impl Sub<StdDuration> for PlainDateTime {
     }
 }
 
-impl SubAssign<Duration> for PlainDateTime {
+impl SubAssign<SignedDuration> for PlainDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
-    fn sub_assign(&mut self, duration: Duration) {
+    fn sub_assign(&mut self, duration: SignedDuration) {
         *self = *self - duration;
     }
 }
@@ -1305,7 +1305,7 @@ impl SubAssign<StdDuration> for PlainDateTime {
 }
 
 impl Sub for PlainDateTime {
-    type Output = Duration;
+    type Output = SignedDuration;
 
     #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
