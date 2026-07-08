@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::num::NonZero;
 
 use rstest::rstest;
-use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
+use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, Temporal};
 use time::format_description::{
     Component, FormatDescriptionV3, OwnedFormatItem, StaticFormatDescription, modifier,
 };
@@ -1921,4 +1921,112 @@ fn parse_with_defaults_timestamp_insufficient_information(
             error::TryFromParsed::InsufficientInformation
         ))
     );
+}
+
+#[rstest]
+// The RFC 3339 core, accepted identically.
+#[case("2021-01-02T03:04:05Z", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("2021-01-02T03:04:05.123456789-01:02", datetime!(2021-01-02 03:04:05.123_456_789 -01:02))]
+#[case("2021-01-02T03:04:05.123456789+01:02", datetime!(2021-01-02 03:04:05.123_456_789 +01:02))]
+// The Temporal grammar permits a lower-case `t` and a space as the date/time separator.
+#[case("2021-01-02t03:04:05Z", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("2021-01-02 03:04:05Z", datetime!(2021-01-02 03:04:05 UTC))]
+// Seconds are optional in the Temporal grammar (they are mandatory in RFC 3339).
+#[case("2021-01-02T03:04Z", datetime!(2021-01-02 03:04:00 UTC))]
+#[case("2021-01-02T03:04-08:00", datetime!(2021-01-02 03:04:00 -08:00))]
+// IXDTF annotations: a time-zone annotation and/or `-`-separated key=value tags. `time` stores
+// neither named zones nor calendars, so these are validated and discarded; the offset is kept.
+#[case("2021-01-02T03:04:05-08:00[America/Los_Angeles]", datetime!(2021-01-02 03:04:05 -08:00))]
+#[case("2021-01-02T03:04:05-05:00[America/New_York]", datetime!(2021-01-02 03:04:05 -05:00))]
+#[case("2021-01-02T03:04:05Z[Etc/UTC]", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("2021-01-02T03:04:05Z[u-ca=iso8601]", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("2021-01-02T03:04:05Z[Etc/UTC][u-ca=iso8601]", datetime!(2021-01-02 03:04:05 UTC))]
+// A critical (`!`) time-zone annotation is honourable: the instant is fully given by the offset.
+#[case("2021-01-02T03:04:05-05:00[!America/New_York]", datetime!(2021-01-02 03:04:05 -05:00))]
+// A critical `u-ca` requesting the ISO calendar is honourable.
+#[case("2021-01-02T03:04:05Z[!u-ca=iso8601]", datetime!(2021-01-02 03:04:05 UTC))]
+// Non-critical annotations `time` cannot act upon are simply ignored.
+#[case("2021-01-02T03:04:05Z[u-ca=hebrew]", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("2021-01-02T03:04:05Z[x-vendor=value-with-dashes]", datetime!(2021-01-02 03:04:05 UTC))]
+fn temporal_odt(#[case] input: &str, #[case] expected: OffsetDateTime) {
+    assert_eq!(OffsetDateTime::parse(input, &Temporal).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("2021-01-02T03:04:05Z[Etc/UTC]", date!(2021-01-02))]
+#[case("2021-01-02T03:04:05-05:00[America/New_York][u-ca=iso8601]", date!(2021-01-02))]
+fn temporal_date(#[case] input: &str, #[case] expected: Date) {
+    assert_eq!(Date::parse(input, &Temporal).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("2021-01-02T03:04:05Z[Etc/UTC]", offset!(UTC))]
+#[case("2021-01-02T03:04:05-08:00[America/Los_Angeles]", offset!(-08:00))]
+fn temporal_utc_offset(#[case] input: &str, #[case] expected: UtcOffset) {
+    assert_eq!(UtcOffset::parse(input, &Temporal).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("x", "year")]
+#[case("2021-x", "month")]
+#[case("2021-01-0", "day")]
+// Unlike RFC 3339, an arbitrary separator is rejected; only `T`, `t`, and space are permitted.
+#[case("2021-01-02$03:04:05Z", "separator")]
+#[case("2021-01-01T0", "hour")]
+#[case("2021-01-01T00:0", "minute")]
+#[case("2021-01-01T00:00x", "offset hour")]
+#[case("2021-01-01T00:00:00+24:00", "offset hour")]
+// A critical annotation whose meaning cannot be honoured is rejected.
+#[case("2021-01-02T03:04:05Z[!u-ca=hebrew]", "critical annotation")]
+#[case("2021-01-02T03:04:05Z[!x-vendor=value]", "critical annotation")]
+// The time-zone annotation, if present, must be the first annotation and appear at most once.
+#[case("2021-01-02T03:04:05Z[u-ca=iso8601][Etc/UTC]", "time zone annotation")]
+#[case("2021-01-02T03:04:05Z[Etc/UTC][Etc/UTC]", "time zone annotation")]
+// Malformed annotation keys and values.
+#[case("2021-01-02T03:04:05Z[Uppercase=x]", "annotation key")]
+#[case("2021-01-02T03:04:05Z[u-ca=]", "annotation value")]
+#[case("2021-01-02T03:04:05Z[u-ca=bad_underscore]", "annotation value")]
+fn temporal_err_invalid_component(#[case] input: &str, #[case] component_name: &str) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, &Temporal),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent(name)
+        )) if name == component_name
+    ));
+}
+
+#[rstest]
+// An unterminated annotation is a missing literal `]`.
+#[case("2021-01-02T03:04:05Z[Etc/UTC")]
+#[case("2021-01-02T03:04:05Z[u-ca=iso8601")]
+fn temporal_err_invalid_literal(#[case] input: &str) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, &Temporal),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidLiteral { .. }
+        ))
+    ));
+}
+
+#[rstest]
+// The Temporal grammar does not admit leap seconds, so `:60` is out of range.
+#[case("2021-12-31T23:59:60Z")]
+fn temporal_err_leap_second(#[case] input: &str) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, &Temporal),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
+            if component.name() == "second"
+    ));
+}
+
+#[rstest]
+#[case("2021-01-02T03:04:05Z ")]
+#[case("2021-01-02T03:04:05Z[Etc/UTC]trailing")]
+fn temporal_err_unexpected_trailing(#[case] input: &str) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, &Temporal),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
 }

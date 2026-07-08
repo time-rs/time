@@ -21,11 +21,13 @@ pub mod well_known {
     pub mod iso8601;
     mod rfc2822;
     mod rfc3339;
+    mod temporal;
 
     #[doc(inline)]
     pub use iso8601::Iso8601;
     pub use rfc2822::Rfc2822;
     pub use rfc3339::Rfc3339;
+    pub use temporal::Temporal;
 }
 
 /// Re-exports of internal types for use in macros.

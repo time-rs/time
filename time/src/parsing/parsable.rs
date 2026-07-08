@@ -10,7 +10,7 @@ use crate::error::TryFromParsed;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
 use crate::format_description::well_known::iso8601::EncodedConfig;
-use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
+use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, Temporal};
 use crate::format_description::{BorrowedFormatItem, FormatDescriptionV3, modifier};
 use crate::internal_macros::{bug, try_likely_ok};
 use crate::parsing::combinator::{
@@ -32,6 +32,7 @@ impl Parsable for OwnedFormatItem {}
 impl Parsable for [OwnedFormatItem] {}
 impl Parsable for Rfc2822 {}
 impl Parsable for Rfc3339 {}
+impl Parsable for Temporal {}
 impl<const CONFIG: EncodedConfig> Parsable for Iso8601<CONFIG> {}
 impl<T> Parsable for T where T: Deref<Target: Parsable> {}
 
@@ -884,6 +885,250 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         Ok(dt)
+    }
+}
+
+/// Validate an RFC 9557 annotation key: `key-initial *key-char`, where `key-initial` is a
+/// lowercase letter or `_` and `key-char` additionally permits digits and `-`.
+fn validate_annotation_key(key: &[u8]) -> Result<(), error::Parse> {
+    match key {
+        [first, rest @ ..]
+            if (first.is_ascii_lowercase() || *first == b'_')
+                && rest
+                    .iter()
+                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'-') =>
+        {
+            Ok(())
+        }
+        _ => Err(InvalidComponent("annotation key").into()),
+    }
+}
+
+/// Validate an RFC 9557 annotation value: one or more `-`-separated non-empty alphanumeric
+/// segments (`suffix-values = suffix-value *("-" suffix-value)`).
+fn validate_annotation_value(value: &[u8]) -> Result<(), error::Parse> {
+    let mut any = false;
+    for segment in value.split(|&b| b == b'-') {
+        any = true;
+        if segment.is_empty() || !segment.iter().all(u8::is_ascii_alphanumeric) {
+            return Err(InvalidComponent("annotation value").into());
+        }
+    }
+    if any {
+        Ok(())
+    } else {
+        Err(InvalidComponent("annotation value").into())
+    }
+}
+
+/// Validate an RFC 9557 time-zone annotation name. As `time` embeds no IANA database, only the
+/// permitted character set is checked (covering IANA names such as `America/New_York` and
+/// `Etc/GMT+1` as well as numeric offsets such as `+01:00`), not membership of the registry.
+fn validate_time_zone_name(name: &[u8]) -> Result<(), error::Parse> {
+    if !name.is_empty()
+        && name.iter().all(|&b| {
+            b.is_ascii_alphanumeric() || matches!(b, b'/' | b'_' | b'-' | b'+' | b'.' | b':')
+        })
+    {
+        Ok(())
+    } else {
+        Err(InvalidComponent("time zone annotation").into())
+    }
+}
+
+/// Parse and validate the optional RFC 9557 (IXDTF) annotation suffix that may follow an
+/// [`Temporal`](crate::format_description::well_known::Temporal) date-time.
+///
+/// As `time` models neither named time zones nor non-ISO calendars, annotations are validated for
+/// syntactic correctness and then discarded; the numeric offset parsed earlier is authoritative.
+/// Per RFC 9557 §3.2, a *critical* annotation (prefixed with `!`) whose meaning cannot be honoured
+/// causes the parse to fail. The single permissible time-zone annotation, if present, must come
+/// first; it is retained even when critical, as the instant is fully represented by the offset.
+fn parse_temporal_annotations(mut input: &[u8]) -> Result<&[u8], error::Parse> {
+    let mut is_first = true;
+    let mut seen_time_zone = false;
+    while let [b'[', rest @ ..] = input {
+        let (critical, rest) = match rest {
+            [b'!', rest @ ..] => (true, rest),
+            rest => (false, rest),
+        };
+        let end = rest
+            .iter()
+            .position(|&b| b == b']')
+            .ok_or(error::Parse::ParseFromDescription(InvalidLiteral))?;
+        let body = &rest[..end];
+        input = &rest[end + 1..];
+
+        match body.iter().position(|&b| b == b'=') {
+            // Key-value annotation, e.g. `[u-ca=iso8601]`.
+            Some(eq) => {
+                let (key, value) = (&body[..eq], &body[eq + 1..]);
+                validate_annotation_key(key)?;
+                validate_annotation_value(value)?;
+                // The only annotation `time` could act upon is the calendar (`u-ca`), and it
+                // supports solely the ISO 8601 calendar. A critical request for any other calendar
+                // cannot be honoured. Any other critical key is unrecognised, likewise
+                // unhonourable.
+                let honourable = if key == b"u-ca" {
+                    value.eq_ignore_ascii_case(b"iso8601")
+                } else {
+                    false
+                };
+                if critical && !honourable {
+                    return Err(InvalidComponent("critical annotation").into());
+                }
+            }
+            // Time-zone annotation, e.g. `[America/New_York]`.
+            None => {
+                if !is_first || seen_time_zone {
+                    return Err(InvalidComponent("time zone annotation").into());
+                }
+                seen_time_zone = true;
+                validate_time_zone_name(body)?;
+            }
+        }
+        is_first = false;
+    }
+    Ok(input)
+}
+
+#[expect(
+    private_interfaces,
+    reason = "not intended to be used by downstream users"
+)]
+impl sealed::Sealed for Temporal {
+    fn parse_into<'a>(
+        &self,
+        input: &'a [u8],
+        parsed: &mut Parsed,
+        _: PrivateMethod,
+    ) -> Result<&'a [u8], error::Parse> {
+        let dash = ascii_char::<b'-'>;
+        let colon = ascii_char::<b':'>;
+
+        // full-date: YYYY-MM-DD
+        let input = try_likely_ok!(
+            ExactlyNDigits::<4>::parse(input)
+                .and_then(|item| {
+                    item.consume_value(|value| parsed.set_year(value.cast_signed().widen()))
+                })
+                .ok_or(InvalidComponent("year"))
+        );
+        let input = try_likely_ok!(dash(input).ok_or(InvalidLiteral)).into_inner();
+        let input = try_likely_ok!(
+            ExactlyNDigits::<2>::parse(input)
+                .and_then(
+                    |item| item.flat_map(|value| Month::from_number(NonZero::new(value)?).ok())
+                )
+                .and_then(|item| item.consume_value(|value| parsed.set_month(value)))
+                .ok_or(InvalidComponent("month"))
+        );
+        let input = try_likely_ok!(dash(input).ok_or(InvalidLiteral)).into_inner();
+        let input = try_likely_ok!(
+            ExactlyNDigits::<2>::parse(input)
+                .and_then(|item| item.consume_value(|value| parsed.set_day(NonZero::new(value)?)))
+                .ok_or(InvalidComponent("day"))
+        );
+
+        // Date/time separator. Unlike RFC 3339, the Temporal grammar permits only `T`, `t`, or a
+        // space.
+        let Some((b'T' | b't' | b' ', input)) = input.split_first() else {
+            return Err(InvalidComponent("separator").into());
+        };
+
+        // partial-time: HH:MM, with optional seconds and fractional seconds. The Temporal grammar
+        // does not admit leap seconds, so `leap_second_allowed` is left unset.
+        let input = try_likely_ok!(
+            ExactlyNDigits::<2>::parse(input)
+                .and_then(|item| item.consume_value(|value| parsed.set_hour_24(value)))
+                .ok_or(InvalidComponent("hour"))
+        );
+        let input = try_likely_ok!(colon(input).ok_or(InvalidLiteral)).into_inner();
+        let input = try_likely_ok!(
+            ExactlyNDigits::<2>::parse(input)
+                .and_then(|item| item.consume_value(|value| parsed.set_minute(value)))
+                .ok_or(InvalidComponent("minute"))
+        );
+        let input = if let Some(ParsedItem(input, ())) = colon(input) {
+            let input = try_likely_ok!(
+                ExactlyNDigits::<2>::parse(input)
+                    .and_then(|item| item.consume_value(|value| parsed.set_second(value)))
+                    .ok_or(InvalidComponent("second"))
+            );
+            if let Some(ParsedItem(input, ())) = ascii_char::<b'.'>(input) {
+                let ParsedItem(mut input, mut value) =
+                    try_likely_ok!(any_digit(input).ok_or(InvalidComponent("subsecond")))
+                        .map(|v| (v - b'0').widen::<u32>() * 100_000_000);
+
+                let mut multiplier = 10_000_000;
+                while let Some(ParsedItem(new_input, digit)) = any_digit(input) {
+                    value += (digit - b'0').widen::<u32>() * multiplier;
+                    input = new_input;
+                    multiplier /= 10;
+                }
+
+                try_likely_ok!(
+                    parsed
+                        .set_subsecond(value)
+                        .ok_or(InvalidComponent("subsecond"))
+                );
+                input
+            } else {
+                input
+            }
+        } else {
+            input
+        };
+
+        // UTC offset: `Z`/`z` or `±HH:MM`.
+        let input = if let Some(ParsedItem(input, ())) = ascii_char_ignore_case::<b'Z'>(input) {
+            try_likely_ok!(
+                parsed
+                    .set_offset_hour(0)
+                    .ok_or(InvalidComponent("offset hour"))
+            );
+            try_likely_ok!(
+                parsed
+                    .set_offset_minute_signed(0)
+                    .ok_or(InvalidComponent("offset minute"))
+            );
+            try_likely_ok!(
+                parsed
+                    .set_offset_second_signed(0)
+                    .ok_or(InvalidComponent("offset second"))
+            );
+            input
+        } else {
+            let ParsedItem(input, offset_sign) =
+                try_likely_ok!(sign(input).ok_or(InvalidComponent("offset hour")));
+            let input = try_likely_ok!(
+                ExactlyNDigits::<2>::parse(input)
+                    .and_then(|item| {
+                        item.filter(|&offset_hour| offset_hour <= 23)?
+                            .map(|offset_hour| match offset_sign {
+                                Sign::Negative => -offset_hour.cast_signed(),
+                                Sign::Positive => offset_hour.cast_signed(),
+                            })
+                            .consume_value(|value| parsed.set_offset_hour(value))
+                    })
+                    .ok_or(InvalidComponent("offset hour"))
+            );
+            let input = try_likely_ok!(colon(input).ok_or(InvalidLiteral)).into_inner();
+            try_likely_ok!(
+                ExactlyNDigits::<2>::parse(input)
+                    .and_then(|item| {
+                        item.map(|offset_minute| match offset_sign {
+                            Sign::Negative => -offset_minute.cast_signed(),
+                            Sign::Positive => offset_minute.cast_signed(),
+                        })
+                        .consume_value(|value| parsed.set_offset_minute_signed(value))
+                    })
+                    .ok_or(InvalidComponent("offset minute"))
+            )
+        };
+
+        // Optional RFC 9557 (IXDTF) annotation suffix.
+        parse_temporal_annotations(input)
     }
 }
 

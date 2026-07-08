@@ -11,7 +11,7 @@ use num_conv::prelude::*;
 use crate::format_description::format_description_v3::FormatDescriptionV3Inner;
 use crate::format_description::modifier::Padding;
 use crate::format_description::well_known::iso8601::EncodedConfig;
-use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
+use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, Temporal};
 use crate::format_description::{
     BorrowedFormatItem, Component, FormatDescriptionV3, OwnedFormatItem,
 };
@@ -258,6 +258,7 @@ impl Formattable for [BorrowedFormatItem<'_>] {}
 impl Formattable for OwnedFormatItem {}
 impl Formattable for [OwnedFormatItem] {}
 impl Formattable for Rfc3339 {}
+impl Formattable for Temporal {}
 impl Formattable for Rfc2822 {}
 impl<const CONFIG: EncodedConfig> Formattable for Iso8601<CONFIG> {}
 impl<T> Formattable for T where T: Deref<Target: Formattable> {}
@@ -813,6 +814,124 @@ impl sealed::Sealed for Rfc3339 {
             );
         }
 
+        let offset_hour = value.offset_hour(state);
+        let mut bytes = 0;
+
+        if !(0..10_000).contains(&value.calendar_year(state).get()) {
+            crate::hint::cold_path();
+            return Err(error::Format::InvalidComponent("year"));
+        }
+        if offset_hour.get().unsigned_abs() > 23 {
+            crate::hint::cold_path();
+            return Err(error::Format::InvalidComponent("offset_hour"));
+        }
+        if value.offset_second(state).get() != 0 {
+            crate::hint::cold_path();
+            return Err(error::Format::InvalidComponent("offset_second"));
+        }
+
+        // Safety: Years outside this range were rejected above.
+        bytes += try_likely_ok!(format_four_digits_pad_zero(output, unsafe {
+            ru16::new_unchecked(value.calendar_year(state).get().cast_unsigned().truncate())
+        }));
+        bytes += try_likely_ok!(write(output, "-"));
+        bytes += try_likely_ok!(format_two_digits(
+            output,
+            // Safety: `month` is guaranteed to be in the range `1..=12`.
+            unsafe { ru8::new_unchecked(u8::from(value.month(state))) },
+            Padding::Zero,
+        ));
+        bytes += try_likely_ok!(write(output, "-"));
+        bytes += try_likely_ok!(format_two_digits(
+            output,
+            value.day(state).expand(),
+            Padding::Zero
+        ));
+        bytes += try_likely_ok!(write(output, "T"));
+        bytes += try_likely_ok!(format_two_digits(
+            output,
+            value.hour(state).expand(),
+            Padding::Zero
+        ));
+        bytes += try_likely_ok!(write(output, ":"));
+        bytes += try_likely_ok!(format_two_digits(
+            output,
+            value.minute(state).expand(),
+            Padding::Zero
+        ));
+        bytes += try_likely_ok!(write(output, ":"));
+        bytes += try_likely_ok!(format_two_digits(
+            output,
+            value.second(state).expand(),
+            Padding::Zero
+        ));
+
+        let nanos = value.nanosecond(state);
+        if nanos.get() != 0 {
+            bytes += try_likely_ok!(write(output, "."));
+            try_likely_ok!(write(
+                output,
+                &num_fmt::truncated_subsecond_from_nanos(nanos)
+            ));
+        }
+
+        if value.offset_is_utc(state) {
+            bytes += try_likely_ok!(write(output, "Z"));
+            return Ok(bytes);
+        }
+
+        bytes += try_likely_ok!(write_if_else(
+            output,
+            value.offset_is_negative(state),
+            "-",
+            "+"
+        ));
+        bytes += try_likely_ok!(format_two_digits(
+            output,
+            // Safety: `OffsetHours` is guaranteed to be in the range `-23..=23`, so the absolute
+            // value is guaranteed to be in the range `0..=23`.
+            unsafe { ru8::new_unchecked(offset_hour.get().unsigned_abs()) },
+            Padding::Zero,
+        ));
+        bytes += try_likely_ok!(write(output, ":"));
+        bytes += try_likely_ok!(format_two_digits(
+            output,
+            // Safety: `OffsetMinutes` is guaranteed to be in the range `-59..=59`, so the absolute
+            // value is guaranteed to be in the range `0..=59`.
+            unsafe { ru8::new_unchecked(value.offset_minute(state).get().unsigned_abs()) },
+            Padding::Zero,
+        ));
+
+        Ok(bytes)
+    }
+}
+
+#[expect(
+    private_bounds,
+    private_interfaces,
+    reason = "irrelevant due to being a sealed trait"
+)]
+impl sealed::Sealed for Temporal {
+    fn format_into<V>(
+        &self,
+        output: &mut (impl io::Write + ?Sized),
+        value: &V,
+        state: &mut V::State,
+        _: PrivateMethod,
+    ) -> Result<usize, error::Format>
+    where
+        V: ComponentProvider,
+    {
+        const {
+            assert!(
+                V::SUPPLIES_DATE && V::SUPPLIES_TIME && V::SUPPLIES_OFFSET,
+                "Temporal requires date, time, and offset components, but not all can be provided \
+                 by this type"
+            );
+        }
+
+        // `time` stores neither a named time zone nor a non-ISO calendar, so no annotations can be
+        // emitted; the output is the RFC 9557 date-time, which is itself a valid Temporal string.
         let offset_hour = value.offset_hour(state);
         let mut bytes = 0;
 

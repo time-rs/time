@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## Unreleased
+
+### Added
+
+- The `Temporal` well-known format, implementing the ECMAScript Temporal grammar / RFC 9557
+  (IXDTF). It parses and formats offset date-times and understands the IXDTF annotation suffix
+  (time-zone and calendar annotations), which is validated and discarded as `time` stores neither
+  named time zones nor alternative calendars.
+
 ## 0.3.53 [2026-07-01]
 
 There are no publicly-facing changes in this release. It solely works around the `cookie` crate

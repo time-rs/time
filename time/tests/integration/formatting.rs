@@ -3,7 +3,7 @@ use std::num::NonZero;
 
 use rstest::rstest;
 use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
-use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, iso8601};
+use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, Temporal, iso8601};
 use time::format_description::{self, BorrowedFormatItem, OwnedFormatItem};
 use time::formatting::Formattable;
 use time::macros::{date, datetime, format_description as fd, offset, time, utc_datetime};
@@ -67,6 +67,38 @@ fn rfc_3339_err(#[case] dt: OffsetDateTime, #[case] component: &str) {
         dt.format(&Rfc3339),
         Err(time::error::Format::InvalidComponent(c)) if c == component
     ));
+}
+
+// `time` cannot emit named-zone or calendar annotations, so a formatted `Temporal` value is the
+// RFC 9557 date-time — itself a valid Temporal string.
+#[rstest]
+#[case(datetime!(2021-01-02 03:04:05 UTC), "2021-01-02T03:04:05Z")]
+#[case(datetime!(2021-01-02 03:04:05.123_456_789 UTC), "2021-01-02T03:04:05.123456789Z")]
+#[case(datetime!(2021-01-02 03:04:05.123_456_789 -01:02), "2021-01-02T03:04:05.123456789-01:02")]
+#[case(datetime!(2021-01-02 03:04:05 +01:00), "2021-01-02T03:04:05+01:00")]
+fn temporal(#[case] dt: OffsetDateTime, #[case] expected: &str) {
+    assert_eq!(dt.format(&Temporal).ok(), Some(expected.to_string()));
+}
+
+#[rstest]
+#[case(datetime!(-0001-01-01 0:00 UTC), "year")]
+#[case(datetime!(0000-01-01 0:00 +00:00:01), "offset_second")]
+fn temporal_err(#[case] dt: OffsetDateTime, #[case] component: &str) {
+    assert!(matches!(
+        dt.format(&Temporal),
+        Err(time::error::Format::InvalidComponent(c)) if c == component
+    ));
+}
+
+// Formatting then re-parsing any offset date-time round-trips exactly.
+#[rstest]
+#[case(datetime!(2021-01-02 03:04:05 UTC))]
+#[case(datetime!(2021-01-02 03:04:05.123_456_789 -08:00))]
+#[case(datetime!(1970-01-01 00:00:00 +00:00))]
+#[case(datetime!(9999-12-31 23:59:59.999_999_999 +23:59))]
+fn temporal_round_trip(#[case] dt: OffsetDateTime) {
+    let formatted = dt.format(&Temporal).expect("formatting succeeds");
+    assert_eq!(OffsetDateTime::parse(&formatted, &Temporal).ok(), Some(dt));
 }
 
 #[rstest]
