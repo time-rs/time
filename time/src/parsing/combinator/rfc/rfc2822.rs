@@ -205,10 +205,10 @@ fn text<'a>(input: &'a [u8]) -> ParsedItem<'a, ()> {
 pub(crate) fn zone_literal(input: &[u8]) -> Option<ParsedItem<'_, i8>> {
     let [first, second, third, rest @ ..] = input else {
         const UT_VARIANTS: [u16; 4] = [
-            u16::from_ne_bytes([b'u', b't']),
-            u16::from_ne_bytes([b'u', b'T']),
-            u16::from_ne_bytes([b'U', b't']),
-            u16::from_ne_bytes([b'U', b'T']),
+            u16::from_ne_bytes(*b"ut"),
+            u16::from_ne_bytes(*b"uT"),
+            u16::from_ne_bytes(*b"Ut"),
+            u16::from_ne_bytes(*b"UT"),
         ];
 
         let [first, rest @ ..] = input else {
