@@ -1006,6 +1006,10 @@ impl sealed::Sealed for Temporal {
         let dash = ascii_char::<b'-'>;
         let colon = ascii_char::<b':'>;
 
+        // The Temporal grammar inherits RFC 3339's time syntax, which permits a leap second
+        // (`:60`); it is handled like `Rfc3339`/`Iso8601` via the leap-second stand-in.
+        parsed.leap_second_allowed = true;
+
         // full-date: YYYY-MM-DD
         let input = try_likely_ok!(
             ExactlyNDigits::<4>::parse(input)
@@ -1036,8 +1040,7 @@ impl sealed::Sealed for Temporal {
             return Err(InvalidComponent("separator").into());
         };
 
-        // partial-time: HH:MM, with optional seconds and fractional seconds. The Temporal grammar
-        // does not admit leap seconds, so `leap_second_allowed` is left unset.
+        // partial-time: HH:MM, with optional seconds and fractional seconds.
         let input = try_likely_ok!(
             ExactlyNDigits::<2>::parse(input)
                 .and_then(|item| item.consume_value(|value| parsed.set_hour_24(value)))

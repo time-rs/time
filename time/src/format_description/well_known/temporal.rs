@@ -13,8 +13,9 @@
 /// `1996-12-19T16:39:57-08:00[America/Los_Angeles][u-ca=iso8601]`.
 ///
 /// It differs from [`Rfc3339`](super::Rfc3339) in that the date/time separator is restricted to
-/// `T`, `t`, or a space, the seconds component is optional, leap seconds are not accepted, and the
-/// IXDTF annotation suffix is understood.
+/// `T`, `t`, or a space, the seconds component is optional, and the IXDTF annotation suffix is
+/// understood. As in RFC 3339, a leap second (`:60`) is accepted and retained as the leap-second
+/// stand-in.
 ///
 /// As `time` models neither named time zones nor alternative calendars, annotations are validated
 /// for syntactic correctness and then discarded; only the numeric UTC offset is retained. In

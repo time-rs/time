@@ -2009,9 +2009,22 @@ fn temporal_err_invalid_literal(#[case] input: &str) {
 }
 
 #[rstest]
-// The Temporal grammar does not admit leap seconds, so `:60` is out of range.
-#[case("2021-12-31T23:59:60Z")]
-fn temporal_err_leap_second(#[case] input: &str) {
+// The Temporal grammar inherits RFC 3339's time syntax, which admits a leap second (`:60`).
+// It is accepted and stored as the leap-second stand-in, matching `Rfc3339`.
+#[case("2016-12-31T23:59:60Z")]
+#[case("2016-12-31T23:59:60+00:00")]
+fn temporal_leap_second(#[case] input: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let parsed = OffsetDateTime::parse(input, &Temporal)?;
+    assert_eq!(parsed.second(), 59);
+    assert_eq!(parsed.nanosecond(), 999_999_999);
+    Ok(())
+}
+
+#[rstest]
+// A `:60` that is not a valid leap-second stand-in (wrong time or offset) is still rejected.
+#[case("2021-01-02T12:00:60Z")]
+#[case("2016-12-31T23:59:60+05:00")]
+fn temporal_err_invalid_leap_second(#[case] input: &str) {
     assert!(matches!(
         OffsetDateTime::parse(input, &Temporal),
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
