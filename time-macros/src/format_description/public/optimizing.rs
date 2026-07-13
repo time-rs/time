@@ -1,14 +1,13 @@
 //! Optimization for format descriptions.
 //!
-//! The tree of all items is walked recursively and optimized in-place. All passes are called in a
-//! loop until the tree remains unchanged after executing all passes, meaning that it is fully
-//! optimized.
+//! The tree of all items is walked recursively and optimized in-place. Optimizations are ordered so
+//! that their effects are consumed by later optimizations in a single pass. Children are optimized
+//! before their parent, so sibling-level interactions are the only concern at each level.
 //!
 //! Each optimization function accepts `self` mutably and returns whether it modified the tree. Note
 //! that optimizations *must not* affect runtime behavior in terms of formatting output, accepted
 //! input when parsing, or output from the parser.
 
-use std::convert::identity;
 use std::mem;
 
 use super::{Component, OwnedFormatItem, OwnedFormatItemInner};
@@ -21,18 +20,6 @@ impl OwnedFormatItem {
 
 impl OwnedFormatItemInner {
     pub(crate) fn optimize(&mut self) {
-        let passes = [
-            Self::merge_consecutive_literals,
-            Self::unnest_trivial_compounds,
-            Self::unnest_nested_compounds,
-            Self::unnest_first_only_one,
-            Self::unnest_nested_first,
-            Self::only_formatting_uplift_optional,
-            Self::only_formatting_uplift_first,
-            Self::only_formatting_eliminate_end,
-            Self::compound_containing_empty_string,
-        ];
-
         // Walk the tree and optimize all children.
         match self {
             Self::Literal(_) | Self::StringLiteral(_) | Self::Component(_) => {}
@@ -44,8 +31,27 @@ impl OwnedFormatItemInner {
             Self::Optional { format: _, item } => item.optimize(),
         }
 
-        // Iterate over all optimization passes until no more changes are made.
-        while passes.map(|pass| pass(self)).into_iter().any(identity) {}
+        // Run all optimizations in dependency order: group only creates opportunities that later
+        // passes consume. Passes that mutate the node type (e.g., uplifting an optional) run first,
+        // followed by structural passes (unnesting, cleanup), with consuming passes (merging,
+        // trivial unwrapping) last.
+        let passes = [
+            // type-changing passes
+            Self::only_formatting_uplift_optional,
+            Self::only_formatting_uplift_first,
+            Self::only_formatting_eliminate_end,
+            // structural passes: inline nested containers, remove no-op children
+            Self::unnest_nested_compounds,
+            Self::unnest_nested_first,
+            Self::compound_containing_empty_string,
+            // consuming passes: merge siblings, unwrap trivial wrappers
+            Self::merge_consecutive_literals,
+            Self::unnest_trivial_compounds,
+            Self::unnest_first_only_one,
+        ];
+        for pass in passes {
+            pass(self);
+        }
     }
 
     const fn no_op() -> Self {
