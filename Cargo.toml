@@ -121,6 +121,7 @@ get-unwrap = "warn"
 manual-let-else = "warn"
 missing-docs-in-private-items = "warn"
 missing-enforced-import-renames = "warn"
+missing-panics-doc = "warn"
 nursery = { level = "warn", priority = -1 }
 obfuscated-if-else = "warn"
 print-stdout = "warn"
