@@ -108,6 +108,7 @@ mod hint;
 mod instant;
 mod internal_macros;
 mod interop;
+pub mod iter;
 #[cfg(feature = "macros")]
 pub mod macros;
 mod month;

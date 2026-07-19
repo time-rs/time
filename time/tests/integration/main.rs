@@ -91,6 +91,7 @@ require_all_features! {
 
     mod convert;
     mod date;
+    mod date_iter;
     mod derives;
     mod duration;
     mod error;

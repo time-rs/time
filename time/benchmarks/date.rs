@@ -21,12 +21,8 @@ use time::{Date, Time};
 fn representative_dates() -> [Date; 292_194] {
     static DATES: LazyLock<[Date; 292_194]> = LazyLock::new(|| {
         let mut dates = [Date::MIN; _];
-        let mut current = date!(-0400-01-01);
-        let mut i = 0;
-        while current < date!(0400-01-01) {
-            dates[i] = current;
-            current = current.next_day().expect("date is in range");
-            i += 1;
+        for (i, date) in date!(-0400-01-01).iter_to(date!(0399-12-31)).enumerate() {
+            dates[i] = date;
         }
         crate::shuffle(dates)
     });

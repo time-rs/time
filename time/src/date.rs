@@ -19,6 +19,7 @@ use crate::PrivateMethod;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt, div_floor, ensure_ranged};
+use crate::iter::DateIter;
 use crate::num_fmt::{four_to_six_digits, str_from_raw_parts, two_digits_zero_padded};
 #[cfg(feature = "parsing")]
 use crate::parsing::{Parsable, Parsed};
@@ -95,7 +96,7 @@ impl Date {
     /// - `is_leap_year` must be `true` if and only if `year` is a leap year
     #[inline]
     #[track_caller]
-    const unsafe fn from_parts(year: i32, is_leap_year: bool, ordinal: u16) -> Self {
+    pub(crate) const unsafe fn from_parts(year: i32, is_leap_year: bool, ordinal: u16) -> Self {
         debug_assert!(year >= MIN_YEAR);
         debug_assert!(year <= MAX_YEAR);
         debug_assert!(ordinal != 0);
@@ -336,7 +337,7 @@ impl Date {
     /// This method is optimized to take advantage of the fact that the value is pre-computed upon
     /// construction and stored in the bitpacked struct.
     #[inline]
-    const fn is_in_leap_year(self) -> bool {
+    pub(crate) const fn is_in_leap_year(self) -> bool {
         (self.value.get() >> 9) & 1 == 1
     }
 
@@ -617,10 +618,8 @@ impl Date {
                 unsafe { Some(Self::__from_ordinal_date_unchecked(self.year() + 1, 1)) }
             }
         } else {
-            Some(Self {
-                // Safety: `ordinal` is not zero.
-                value: unsafe { NonZero::new_unchecked(self.value.get() + 1) },
-            })
+            // Safety: `self` is not the last day of the year.
+            Some(unsafe { self.add_days_unchecked(1) })
         }
     }
 
@@ -637,10 +636,8 @@ impl Date {
     #[inline]
     pub const fn previous_day(self) -> Option<Self> {
         if hint::likely(self.ordinal() != 1) {
-            Some(Self {
-                // Safety: `ordinal` is not zero.
-                value: unsafe { NonZero::new_unchecked(self.value.get() - 1) },
-            })
+            // Safety: `self` is not the first day of the year.
+            Some(unsafe { self.add_days_unchecked(-1) })
         } else if self.value.get() == Self::MIN.value.get() {
             None
         } else {
@@ -752,6 +749,21 @@ impl Date {
             .expect("overflow calculating the previous occurrence of a weekday")
     }
 
+    /// Create an iterator of dates from `self` to `end` inclusive.
+    ///
+    /// ```rust
+    /// # use time_macros::date;
+    /// let mut iter = date!(2019-01-01).iter_to(date!(2019-01-03));
+    /// assert_eq!(iter.next(), Some(date!(2019-01-01)));
+    /// assert_eq!(iter.next(), Some(date!(2019-01-02)));
+    /// assert_eq!(iter.next(), Some(date!(2019-01-03)));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    #[inline]
+    pub const fn iter_to(self, end: Self) -> DateIter {
+        DateIter::new(self, end)
+    }
+
     /// Get the Julian day for the date.
     ///
     /// ```rust
@@ -772,6 +784,19 @@ impl Date {
 
         let days_before_year = (1461 * adj_year as i64 / 4) as i32 - century + century / 4;
         days_before_year + ordinal as i32 - 363_521_075
+    }
+
+    /// Add a number of days to the date without checking for overflow.
+    ///
+    /// # Safety
+    ///
+    /// `self.ordinal() + days` must be in the range `1..=366` for leap years and `1..=365` for
+    /// common years.
+    #[inline]
+    pub(crate) const unsafe fn add_days_unchecked(mut self, days: i32) -> Self {
+        // Safety: asserted by caller
+        self.value = unsafe { NonZero::new_unchecked(self.value.get() + days) };
+        self
     }
 
     /// Computes `self + duration`, returning `None` if an overflow occurred.
