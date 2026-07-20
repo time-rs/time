@@ -709,7 +709,7 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.53"
+version = "0.3.54"
 dependencies = [
  "criterion",
  "deranged",
@@ -740,7 +740,7 @@ version = "0.1.9"
 
 [[package]]
 name = "time-macros"
-version = "0.2.31"
+version = "0.2.32"
 dependencies = [
  "num-conv",
  "time-core",

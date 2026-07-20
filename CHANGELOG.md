@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.54 [2026-07-20]
+
+### Added
+
+- `PrimitiveDateTime` has been renamed to `PlainDateTime`.
+- `Duration` has been renamed to `SignedDuration`.
+- Iteration is now possible over `Date`, `Month`, and `Weekday`. Relevant iterator methods have been
+  overridden to ensure maximum performance.
+
+For both `PlainDateTime` and `SignedDuration`, a non-deprecated type alias has been added for
+backwards compatibility. The new names should be preferred.
+
+### Changed
+
+- The associated metadata type (for `powerfmt` implementations) for various types has been changed
+  to `()` and made public. This guarantees that no additional metadata will be present.
+
+### Performance
+
+- More gains when parsing RFC 2822.
+
 ## 0.3.53 [2026-07-01]
 
 There are no publicly-facing changes in this release. It solely works around the `cookie` crate
