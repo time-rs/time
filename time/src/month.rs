@@ -7,6 +7,7 @@ use core::str::FromStr;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 use self::Month::*;
+use crate::iter::MonthIter;
 use crate::{error, util};
 
 /// Months of the year.
@@ -173,6 +174,31 @@ impl Month {
                 January
             }
         }
+    }
+
+    /// Create an infinite iterator starting at this month.
+    ///
+    /// ```rust
+    /// # use time::Month;
+    /// let mut iter = Month::iter_from(Month::January);
+    /// assert_eq!(iter.next(), Some(Month::January));
+    /// assert_eq!(iter.next(), Some(Month::February));
+    /// assert_eq!(iter.next(), Some(Month::March));
+    /// assert_eq!(iter.next(), Some(Month::April));
+    /// assert_eq!(iter.next(), Some(Month::May));
+    /// assert_eq!(iter.next(), Some(Month::June));
+    /// assert_eq!(iter.next(), Some(Month::July));
+    /// assert_eq!(iter.next(), Some(Month::August));
+    /// assert_eq!(iter.next(), Some(Month::September));
+    /// assert_eq!(iter.next(), Some(Month::October));
+    /// assert_eq!(iter.next(), Some(Month::November));
+    /// assert_eq!(iter.next(), Some(Month::December));
+    /// assert_eq!(iter.next(), Some(Month::January));
+    /// // … continuing forever
+    /// ```
+    #[inline]
+    pub const fn iter_from(start: Self) -> MonthIter {
+        MonthIter::new(start)
     }
 }
 
