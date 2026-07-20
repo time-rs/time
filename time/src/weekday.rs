@@ -7,6 +7,7 @@ use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 use self::Weekday::*;
 use crate::error;
+use crate::iter::WeekdayIter;
 
 /// Days of the week.
 ///
@@ -167,6 +168,26 @@ impl Weekday {
             Saturday => 6,
             Sunday => 0,
         }
+    }
+
+    /// Create an infinite iterator starting at this weekday.
+    ///
+    /// ```rust
+    /// # use time::Weekday;
+    /// let mut iter = Weekday::iter_from(Weekday::Monday);
+    /// assert_eq!(iter.next(), Some(Weekday::Monday));
+    /// assert_eq!(iter.next(), Some(Weekday::Tuesday));
+    /// assert_eq!(iter.next(), Some(Weekday::Wednesday));
+    /// assert_eq!(iter.next(), Some(Weekday::Thursday));
+    /// assert_eq!(iter.next(), Some(Weekday::Friday));
+    /// assert_eq!(iter.next(), Some(Weekday::Saturday));
+    /// assert_eq!(iter.next(), Some(Weekday::Sunday));
+    /// assert_eq!(iter.next(), Some(Weekday::Monday));
+    /// // … continuing forever
+    /// ```
+    #[inline]
+    pub const fn iter_from(start: Self) -> WeekdayIter {
+        WeekdayIter::new(start)
     }
 }
 
