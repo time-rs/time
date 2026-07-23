@@ -115,3 +115,40 @@ fn deserialize_error<T>(
 {
     assert_de_tokens_error::<T>(tokens, expected);
 }
+
+#[rstest]
+#[case(
+    PhantomData::<TestMicroseconds>,
+    &[
+        Token::Struct {
+            name: "TestMicroseconds",
+            len: 1,
+        },
+        Token::Str("dt"),
+        Token::I128(i128::MAX),
+        Token::StructEnd,
+    ],
+    "invalid timestamp, expected an in-range value",
+)]
+#[case(
+    PhantomData::<TestMilliseconds>,
+    &[
+        Token::Struct {
+            name: "TestMilliseconds",
+            len: 1,
+        },
+        Token::Str("dt"),
+        Token::I128(i128::MAX),
+        Token::StructEnd,
+    ],
+    "invalid timestamp, expected an in-range value",
+)]
+fn overflow_is_error<T>(
+    #[case] _type: PhantomData<T>,
+    #[case] tokens: &[Token],
+    #[case] expected: &str,
+) where
+    T: for<'de> Deserialize<'de>,
+{
+    assert_de_tokens_error::<T>(tokens, expected);
+}

@@ -30,7 +30,11 @@ where
     D: Deserializer<'a>,
 {
     let value: i128 = <_>::deserialize(deserializer)?;
-    OffsetDateTime::from_unix_timestamp_nanos(value * 1_000).map_err(ComponentRange::into_de_error)
+    value
+        .checked_mul(1_000)
+        .map(OffsetDateTime::from_unix_timestamp_nanos)
+        .unwrap_or_else(|| Err(ComponentRange::unconditional("timestamp")))
+        .map_err(ComponentRange::into_de_error)
 }
 
 /// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] with microseconds
@@ -67,7 +71,12 @@ pub mod option {
         D: Deserializer<'a>,
     {
         Option::deserialize(deserializer)?
-            .map(|value: i128| OffsetDateTime::from_unix_timestamp_nanos(value * 1_000))
+            .map(|value: i128| {
+                value
+                    .checked_mul(1_000)
+                    .map(OffsetDateTime::from_unix_timestamp_nanos)
+                    .unwrap_or_else(|| Err(ComponentRange::unconditional("timestamp")))
+            })
             .transpose()
             .map_err(ComponentRange::into_de_error)
     }
