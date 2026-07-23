@@ -230,6 +230,7 @@ fn len_after_consumption() {
 #[case(date!(2019-12-01), date!(2020-01-31), 15, date!(2019-12-16), date!(2019-12-17))]
 #[case(date!(2020-12-01), date!(2021-01-31), 15, date!(2020-12-16), date!(2020-12-17))]
 #[case(date!(2019-12-30), date!(2020-01-05), 2, date!(2020-01-01), date!(2020-01-02))]
+#[case(date!(2019-01-01), date!(2025-01-01), 400, date!(2020-02-05), date!(2020-02-06))]
 fn nth_cross_year(
     #[case] start: Date,
     #[case] end: Date,

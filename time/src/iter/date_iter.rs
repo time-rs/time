@@ -117,7 +117,7 @@ impl Iterator for DateIter {
         // Fast path for when the result is in the same year, avoiding the more expensive Julian day
         // computation.
         let result = if same_year
-            || front.ordinal() as usize <= if front.is_in_leap_year() { 366 } else { 365 } - n
+            || front.ordinal() as usize + n <= if front.is_in_leap_year() { 366 } else { 365 }
         {
             // Safety: We know that we're staying in the same year and that the resulting ordinal is
             // valid.
