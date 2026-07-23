@@ -94,7 +94,7 @@ impl<'a> de::Visitor<'a> for Visitor<SignedDuration> {
     {
         let seconds = item!(seq, "seconds")?;
         let nanoseconds = item!(seq, "nanoseconds")?;
-        Ok(SignedDuration::new(seconds, nanoseconds))
+        Ok(SignedDuration::new_ranged(seconds, nanoseconds))
     }
 }
 

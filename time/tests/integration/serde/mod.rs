@@ -446,6 +446,16 @@ where
     "invalid type: boolean `false`, expected a `SignedDuration`",
 )]
 #[case(
+    PhantomData::<Compact<SignedDuration>>,
+    &[
+        Token::Tuple { len: 2 },
+        Token::I64(i64::MAX),
+        Token::I32(i32::MAX),
+        Token::TupleEnd,
+    ],
+    "invalid value: integer, expected an integer in the range -999999999..=999999999",
+)]
+#[case(
     PhantomData::<Compact<Weekday>>,
     &[Token::U8(0)],
     "invalid value: integer `0`, expected a value in the range 1..=7",
