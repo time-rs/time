@@ -422,7 +422,7 @@ jobs:
 
       - name: Fix build script permissions
         run: |
-          find target/miri -name 'build-script-build' -exec chmod +x {} \;
+          find target/miri -name 'build-script-build' -exec chmod +x {} \; || true
 
       - name: Run shard tests
         env:
