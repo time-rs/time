@@ -15,6 +15,7 @@ use super::{
 use crate::error::ComponentRange;
 #[cfg(feature = "parsing")]
 use crate::format_description::well_known::*;
+use crate::internal_macros::try_likely_ok;
 use crate::{
     Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, Timestamp, UtcDateTime,
     UtcOffset, Weekday,
@@ -298,12 +299,12 @@ impl<'a> de::Visitor<'a> for Visitor<UtcOffset> {
         let mut minutes = 0;
         let mut seconds = 0;
 
-        if let Ok(Some(min)) = seq.next_element() {
+        if let Some(min) = try_likely_ok!(seq.next_element()) {
             minutes = min;
-            if let Ok(Some(sec)) = seq.next_element() {
+            if let Some(sec) = try_likely_ok!(seq.next_element()) {
                 seconds = sec;
             }
-        };
+        }
 
         UtcOffset::from_hms(hours, minutes, seconds).map_err(ComponentRange::into_de_error)
     }
