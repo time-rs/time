@@ -64,6 +64,7 @@ fn from_unix_timestamp(#[case] timestamp: i64, #[case] expected: UtcDateTime) {
 #[case(0, UtcDateTime::UNIX_EPOCH)]
 #[case(1_546_300_800_000_000_000, utc_datetime!(2019-01-01 0:00))]
 #[case(i128::MAX, None)]
+#[case((1i128 << 64) * 1_000_000_000, None)]
 fn from_unix_timestamp_nanos(
     #[case] timestamp: i128,
     #[case] expected: impl Into<Option<UtcDateTime>>,

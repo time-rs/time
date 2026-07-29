@@ -487,10 +487,17 @@ impl OffsetDateTime {
     /// ```
     #[inline]
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
-        let datetime = const_try!(Self::from_unix_timestamp(div_floor!(
-            timestamp,
-            Nanosecond::per_t::<i128>(Second)
-        ) as i64));
+        let seconds = div_floor!(timestamp, Nanosecond::per_t::<i128>(Second));
+        if seconds < crate::timestamp::Seconds::MIN.get() as i128
+            || seconds > crate::timestamp::Seconds::MAX.get() as i128
+        {
+            return Err(error::ComponentRange::unconditional("timestamp"));
+        }
+
+        let Ok(datetime) = Self::from_unix_timestamp(seconds as i64) else {
+            // Safety: The range was just validated.
+            unsafe { core::hint::unreachable_unchecked() };
+        };
 
         Ok(Self::new_in_offset(
             datetime.date(),

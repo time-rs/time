@@ -29,7 +29,9 @@ use crate::{
     Date, Month, OffsetDateTime, SignedDuration, Time, UtcDateTime, UtcOffset, Weekday, error, util,
 };
 
-type Seconds = ri64<{ UtcDateTime::MIN.unix_timestamp() }, { UtcDateTime::MAX.unix_timestamp() }>;
+/// The range of valid seconds for a [`Timestamp`].
+pub(crate) type Seconds =
+    ri64<{ UtcDateTime::MIN.unix_timestamp() }, { UtcDateTime::MAX.unix_timestamp() }>;
 type Nanoseconds = ru32<0, 999_999_999>;
 
 // Validate that the minimum time is midnight and the maximum is one nanosecond before midnight.

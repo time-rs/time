@@ -123,6 +123,7 @@ fn from_unix_timestamp(#[case] input: i64, #[case] expected: OffsetDateTime) {
 #[case(0, OffsetDateTime::UNIX_EPOCH)]
 #[case(1_546_300_800_000_000_000, datetime!(2019-01-01 0:00 UTC))]
 #[case(i128::MAX, None)]
+#[case((1i128 << 64) * 1_000_000_000, None)]
 fn from_unix_timestamp_nanos(
     #[case] input: i128,
     #[case] expected: impl Into<Option<OffsetDateTime>>,
