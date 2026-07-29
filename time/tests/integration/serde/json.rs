@@ -90,6 +90,24 @@ where
 #[case(PhantomData::<SignedDuration>, Compact, "[50,0]", SignedDuration::new(50, 0))]
 #[case(PhantomData::<SignedDuration>, Readable, "[50,0]", SignedDuration::new(50, 0))]
 #[case(PhantomData::<SignedDuration>, Readable, r#""50.000000000""#, SignedDuration::new(50, 0))]
+#[case(
+    PhantomData::<SignedDuration>,
+    Readable,
+    r#""0.1""#,
+    SignedDuration::new(0, 100_000_000),
+)]
+#[case(
+    PhantomData::<SignedDuration>,
+    Readable,
+    r#""0.123""#,
+    SignedDuration::new(0, 123_000_000),
+)]
+#[case(
+    PhantomData::<SignedDuration>,
+    Readable,
+    r#""-0.1""#,
+    SignedDuration::new(0, -100_000_000),
+)]
 #[case(PhantomData::<Date>, Compact, "[2022,95]", date!(2022-04-05))]
 #[case(PhantomData::<Date>, Readable, "[2022,95]", date!(2022-04-05))]
 #[case(PhantomData::<Date>, Readable, r#""2022-04-05""#, date!(2022-04-05))]

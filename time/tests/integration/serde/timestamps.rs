@@ -152,3 +152,62 @@ fn overflow_is_error<T>(
 {
     assert_de_tokens_error::<T>(tokens, expected);
 }
+
+#[rstest]
+#[case(
+    PhantomData::<TestNanoseconds>,
+    &[
+        Token::Struct {
+            name: "TestNanoseconds",
+            len: 1,
+        },
+        Token::Str("dt"),
+        Token::I128(i128::MAX),
+        Token::StructEnd,
+    ],
+    "invalid timestamp, expected an in-range value",
+)]
+#[case(
+    PhantomData::<TestNanoseconds>,
+    &[
+        Token::Struct {
+            name: "TestNanoseconds",
+            len: 1,
+        },
+        Token::Str("dt"),
+        Token::I128(i128::MIN),
+        Token::StructEnd,
+    ],
+    "invalid timestamp, expected an in-range value",
+)]
+fn nanos_overflow_is_error<T>(
+    #[case] _type: PhantomData<T>,
+    #[case] tokens: &[Token],
+    #[case] expected: &str,
+) where
+    T: for<'de> Deserialize<'de>,
+{
+    assert_de_tokens_error::<T>(tokens, expected);
+}
+
+#[rstest]
+#[case(
+    TestNanoseconds {
+        dt: OffsetDateTime::from_unix_timestamp_nanos(-1_500_000_000).expect("value is valid"),
+    },
+    &[
+        Token::Struct {
+            name: "TestNanoseconds",
+            len: 1,
+        },
+        Token::Str("dt"),
+        Token::I128(-1_500_000_000),
+        Token::StructEnd,
+    ],
+)]
+fn negative_nanos_round_trip<T>(#[case] value: T, #[case] tokens: &[Token])
+where
+    T: Debug + PartialEq + Serialize + for<'de> Deserialize<'de>,
+{
+    assert_tokens(&value, tokens);
+}

@@ -421,6 +421,16 @@ where
     "invalid offset hour, expected an in-range value",
 )]
 #[case(
+    PhantomData::<Compact<UtcOffset>>,
+    &[
+        Token::Tuple { len: 3 },
+        Token::I8(5),
+        Token::Str("not a number"),
+        Token::TupleEnd,
+    ],
+    "invalid type: string \"not a number\", expected i8",
+)]
+#[case(
     PhantomData::<Readable<SignedDuration>>,
     &[Token::BorrowedStr("x")],
     r#"invalid value: string "x", expected a decimal point"#,
@@ -434,6 +444,16 @@ where
     PhantomData::<Readable<SignedDuration>>,
     &[Token::BorrowedStr("0.x")],
     r#"invalid value: string "x", expected nanoseconds"#,
+)]
+#[case(
+    PhantomData::<Readable<SignedDuration>>,
+    &[Token::BorrowedStr("0.123456789x")],
+    r#"invalid value: string "123456789x", expected nanoseconds"#,
+)]
+#[case(
+    PhantomData::<Readable<SignedDuration>>,
+    &[Token::BorrowedStr("0.")],
+    r#"invalid value: string "", expected nanoseconds"#,
 )]
 #[case(
     PhantomData::<Readable<SignedDuration>>,

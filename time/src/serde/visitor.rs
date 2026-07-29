@@ -66,6 +66,17 @@ impl<'a> de::Visitor<'a> for Visitor<SignedDuration> {
     where
         E: de::Error,
     {
+        const NANOS_PER_DIGIT: [i32; 8] = [
+            100_000_000,
+            10_000_000,
+            1_000_000,
+            100_000,
+            10_000,
+            1_000,
+            100,
+            10,
+        ];
+
         let (seconds, nanoseconds) = value.split_once('.').ok_or_else(|| {
             de::Error::invalid_value(de::Unexpected::Str(value), &"a decimal point")
         })?;
@@ -73,9 +84,28 @@ impl<'a> de::Visitor<'a> for Visitor<SignedDuration> {
         let seconds = seconds
             .parse()
             .map_err(|_| de::Error::invalid_value(de::Unexpected::Str(seconds), &"seconds"))?;
-        let mut nanoseconds = nanoseconds.parse().map_err(|_| {
-            de::Error::invalid_value(de::Unexpected::Str(nanoseconds), &"nanoseconds")
-        })?;
+
+        // All characters must be ASCII digits.
+        if nanoseconds.is_empty() || !nanoseconds.bytes().all(|b| b.is_ascii_digit()) {
+            return Err(de::Error::invalid_value(
+                de::Unexpected::Str(nanoseconds),
+                &"nanoseconds",
+            ));
+        }
+
+        let nanos_len = nanoseconds.len();
+        let truncated = if nanos_len > 9 {
+            &nanoseconds[..9]
+        } else {
+            nanoseconds
+        };
+        // Safety: The input is not empty, is entirely ASCII digits, and is at most 9 characters
+        // long.
+        let mut nanoseconds: i32 = unsafe { truncated.parse().unwrap_unchecked() };
+
+        if nanos_len < 9 {
+            nanoseconds *= NANOS_PER_DIGIT[nanos_len - 1];
+        }
 
         if seconds < 0
             // make sure sign does not disappear when seconds == 0
