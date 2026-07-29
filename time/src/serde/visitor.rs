@@ -211,7 +211,7 @@ impl<'a> de::Visitor<'a> for Visitor<UtcDateTime> {
 
     #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("a `PlainDateTime`")
+        formatter.write_str("a `UtcDateTime`")
     }
 
     #[cfg(feature = "parsing")]
