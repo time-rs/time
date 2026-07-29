@@ -7,7 +7,7 @@ concurrency:
 env:
   __MSRV: &msrv "1.88.0"
   CHECK_SHARDS: 11 # for *each* MSRV and stable, so double for total check jobs
-  MIRI_SHARDS: 7
+  MIRI_SHARDS: 30
   TARGET_GROUPS: >
     {
       "no_std": [
@@ -395,7 +395,10 @@ jobs:
   miri:
     name: Test (miri, shard ${{ matrix.shard }})
     runs-on: *default-os
-    needs: [compute-shards, miri-prepare]
+    needs:
+      - compute-shards
+      - miri-prepare
+      - check-targets # not necessary on a technical level, but this ensures the jobs can all run simultaneously
     if: *pr-or-push
     strategy:
       matrix:
@@ -491,12 +494,22 @@ jobs:
   misc:
     name: Miscellaneous
     runs-on: *default-os
+    timeout-minutes: 10 # this step has hung before
     permissions:
       issues: write
     if: *pr-or-push
     steps:
       - *checkout
       - *cache
+
+      - name: Trigger deploy docs
+        id: trigger-deploy-docs
+        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
+        run: |
+          gh workflow run --repo time-rs/time-rs.github.io build-website.yaml
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_PUBLISHING }}
+        background: true
 
       - name: Install nightly toolchain
         id: nightly-toolchain
@@ -582,15 +595,5 @@ jobs:
       - name: Wait for coverage report upload
         wait: [upload-coverage]
 
-  publish-documentation:
-    name: Publish docs
-    needs:
-      - misc
-      - check-targets
-      - miri
-      - test
-    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
-    uses: time-rs/time-rs.github.io/.github/workflows/trigger-deploy.yaml@main
-    secrets: inherit
-    permissions:
-      actions: write
+      - name: Wait for deploy docs
+        wait: [trigger-deploy-docs]
