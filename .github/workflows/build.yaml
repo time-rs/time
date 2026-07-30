@@ -497,6 +497,7 @@ jobs:
     timeout-minutes: 10 # this step has hung before
     permissions:
       issues: write
+      statuses: write
     if: *pr-or-push
     steps:
       - *checkout
@@ -540,42 +541,114 @@ jobs:
         wait: [nightly-toolchain]
 
       - name: Check formatting
+        id: check-formatting
         run: cargo +nightly fmt --all -- {time,time-macros,time-core}/**/*.rs --check
         env:
           RUSTFLAGS: --cfg bench
 
+      - name: Report formatting status
+        if: always() && (steps.check-formatting.conclusion == 'success' || steps.check-formatting.conclusion == 'failure')
+        uses: actions/github-script@v9
+        env:
+          CHECK_NAME: Formatting
+          CONCLUSION: ${{ steps.check-formatting.conclusion }}
+        with:
+          script: |
+            const { reportStatus } = await import('${{ github.workspace }}/.github/scripts/report-status.js')
+            await reportStatus({ github, context })
+
       - name: Generate documentation
+        id: generate-docs
         run: cargo +nightly doc --workspace --all-features --no-deps
         env:
           RUSTDOCFLAGS: --cfg docsrs
+
+      - name: Report documentation status
+        if: always() && (steps.generate-docs.conclusion == 'success' || steps.generate-docs.conclusion == 'failure')
+        uses: actions/github-script@v9
+        env:
+          CHECK_NAME: Documentation
+          CONCLUSION: ${{ steps.generate-docs.conclusion }}
+        with:
+          script: |
+            const { reportStatus } = await import('${{ github.workspace }}/.github/scripts/report-status.js')
+            await reportStatus({ github, context })
 
       - name: Wait for stable toolchain to be available
         wait: [stable-toolchain]
 
       - name: Run clippy
+        id: run-clippy
         run: cargo +stable clippy --all-features --all-targets
         env:
           RUSTFLAGS: --cfg bench
 
+      - name: Report clippy status
+        if: always() && (steps.run-clippy.conclusion == 'success' || steps.run-clippy.conclusion == 'failure')
+        uses: actions/github-script@v9
+        env:
+          CHECK_NAME: Clippy
+          CONCLUSION: ${{ steps.run-clippy.conclusion }}
+        with:
+          script: |
+            const { reportStatus } = await import('${{ github.workspace }}/.github/scripts/report-status.js')
+            await reportStatus({ github, context })
+
       - name: Type-check benchmarks
+        id: typecheck-benches
         run: cargo +stable check -p time --benches --all-features
         env:
           RUSTFLAGS: --cfg bench
 
+      - name: Report benchmarks type-check status
+        if: always() && (steps.typecheck-benches.conclusion == 'success' || steps.typecheck-benches.conclusion == 'failure')
+        uses: actions/github-script@v9
+        env:
+          CHECK_NAME: Type-check benchmarks
+          CONCLUSION: ${{ steps.typecheck-benches.conclusion }}
+        with:
+          script: |
+            const { reportStatus } = await import('${{ github.workspace }}/.github/scripts/report-status.js')
+            await reportStatus({ github, context })
+
       # Test with default feature set to prevent #735 from happening again.
       - name: Doc test (default features)
+        id: doc-test-default
         run: cargo +stable test -p time --doc
+
+      - name: Report doc test status
+        if: always() && (steps.doc-test-default.conclusion == 'success' || steps.doc-test-default.conclusion == 'failure')
+        uses: actions/github-script@v9
+        env:
+          CHECK_NAME: Doc tests (default features)
+          CONCLUSION: ${{ steps.doc-test-default.conclusion }}
+        with:
+          script: |
+            const { reportStatus } = await import('${{ github.workspace }}/.github/scripts/report-status.js')
+            await reportStatus({ github, context })
 
       - name: Wait for cargo-llvm-cov to be available
         wait: [cargo-llvm-cov]
 
       - name: Generate coverage report
+        id: generate-coverage
         run: |
           cargo +stable llvm-cov clean --workspace
           cargo +stable llvm-cov test -p time --no-report --all-features
           cargo +stable llvm-cov report --lcov > lcov.txt
         env:
           RUSTFLAGS: --cfg __ui_tests
+
+      - name: Report code coverage status
+        if: always() && (steps.generate-coverage.conclusion == 'success' || steps.generate-coverage.conclusion == 'failure')
+        uses: actions/github-script@v9
+        env:
+          CHECK_NAME: Code coverage
+          CONCLUSION: ${{ steps.generate-coverage.conclusion }}
+        with:
+          script: |
+            const { reportStatus } = await import('${{ github.workspace }}/.github/scripts/report-status.js')
+            await reportStatus({ github, context })
 
       - name: Upload coverage report
         id: upload-coverage
@@ -590,10 +663,49 @@ jobs:
 
       # We're testing the linking, so running `cargo check` is insufficient.
       - name: Cross-build tests
+        id: cross-build-tests
         run: cargo +stable build -p time --tests --all-features --target x86_64-pc-windows-gnu
+
+      - name: Report cross-compilation status
+        if: always() && (steps.cross-build-tests.conclusion == 'success' || steps.cross-build-tests.conclusion == 'failure')
+        uses: actions/github-script@v9
+        env:
+          CHECK_NAME: Cross-compilation
+          CONCLUSION: ${{ steps.cross-build-tests.conclusion }}
+        with:
+          script: |
+            const { reportStatus } = await import('${{ github.workspace }}/.github/scripts/report-status.js')
+            await reportStatus({ github, context })
 
       - name: Wait for coverage report upload
         wait: [upload-coverage]
 
       - name: Wait for deploy docs
         wait: [trigger-deploy-docs]
+
+      - name: Report publishing docs status
+        if: always() && (steps.trigger-deploy-docs.conclusion == 'success' || steps.trigger-deploy-docs.conclusion == 'failure')
+        uses: actions/github-script@v9
+        env:
+          CHECK_NAME: Publishing docs
+          CONCLUSION: ${{ steps.trigger-deploy-docs.conclusion }}
+        with:
+          script: |
+            const { reportStatus } = await import('${{ github.workspace }}/.github/scripts/report-status.js')
+            await reportStatus({ github, context })
+
+  final:
+    name: Overall status
+    runs-on: ubuntu-latest
+    needs: [check-targets, test, miri, misc]
+    if: always()
+    steps:
+      - name: Report final build status
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS_JSON" | jq -e '
+            to_entries |
+            map(select(.value.result == "failure" or .value.result == "cancelled")) |
+            length == 0
+          '
