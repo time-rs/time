@@ -75,6 +75,8 @@ fn to_offset_invalid_regression(
 #[case(datetime!(2000-01-01 0:00 UTC), offset!(-1), 1999)]
 #[case(PlainDateTime::MAX.assume_utc(), offset!(+1), None)]
 #[case(PlainDateTime::MIN.assume_utc(), offset!(-1), None)]
+#[case(PlainDateTime::MAX.assume_utc(), offset!(+0:00:01), None)]
+#[case(PlainDateTime::MIN.assume_utc(), offset!(-0:00:01), None)]
 fn checked_to_offset(
     #[case] input: OffsetDateTime,
     #[case] offset: UtcOffset,
@@ -105,6 +107,8 @@ fn to_utc_panic(#[case] input: OffsetDateTime) {
 #[case(datetime!(2000-01-01 0:00 +1), 1999)]
 #[case(datetime!(+999999-12-31 23:59:59 -1), None)]
 #[case(datetime!(-999999-01-01 00:00:00 +1), None)]
+#[case(PlainDateTime::MAX.assume_offset(offset!(-1)), None)]
+#[case(PlainDateTime::MIN.assume_offset(offset!(+1)), None)]
 fn checked_to_utc(#[case] input: OffsetDateTime, #[case] expected: impl Into<Option<i32>>) {
     assert_eq!(
         input.checked_to_utc().map(|udt| udt.year()),

@@ -42,6 +42,8 @@ fn to_offset_panic(#[case] udt: UtcDateTime, #[case] offset: UtcOffset) {
 #[case(utc_datetime!(2000-01-01 0:00), offset!(-1), 1999)]
 #[case(UtcDateTime::MAX, offset!(+1), None)]
 #[case(UtcDateTime::MIN, offset!(-1), None)]
+#[case(UtcDateTime::MAX, offset!(+0:00:01), None)]
+#[case(UtcDateTime::MIN, offset!(-0:00:01), None)]
 fn checked_to_offset(
     #[case] udt: UtcDateTime,
     #[case] offset: UtcOffset,

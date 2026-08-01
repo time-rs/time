@@ -119,7 +119,10 @@ macro_rules! cascade {
             $year += 1;
         } else if crate::hint::unlikely($ordinal < 1) {
             $year -= 1;
-            $ordinal += crate::util::range_validated::days_in_year($year).cast_signed();
+            // The year may now be out of range if it was previously `MIN_YEAR`. This macro arm is
+            // only called in situations where this is possible, so branching on where this is a
+            // possibility is not necessary.
+            $ordinal += crate::util::days_in_year($year).cast_signed();
         }
     };
 }
