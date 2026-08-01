@@ -6,8 +6,8 @@ concurrency:
 
 env:
   __MSRV: &msrv "1.88.0"
-  CHECK_SHARDS: 11 # for *each* MSRV and stable, so double for total check jobs
-  MIRI_SHARDS: 30
+  CHECK_SHARDS: 6 # for *each* MSRV and stable, so double for total check jobs
+  MIRI_SHARDS: 16 # 30 (runners available) - 3 * 6 (check shards) - 1 (misc) - 1 (random test that takes longer)
   TARGET_GROUPS: >
     {
       "no_std": [
@@ -398,7 +398,6 @@ jobs:
     needs:
       - compute-shards
       - miri-prepare
-      - check-targets # not necessary on a technical level, but this ensures the jobs can all run simultaneously
     if: *pr-or-push
     strategy:
       matrix:
