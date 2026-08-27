@@ -314,7 +314,7 @@ impl MonthNumerical {
 #[allow(deprecated)]
 #[deprecated(
     since = "0.3.48",
-    note = "use `MonthShort`, `MonthLong`, or `MonthNumeric` instead"
+    note = "use `MonthShort`, `MonthLong`, or `MonthNumerical` instead"
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Month {
