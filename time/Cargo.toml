@@ -12,6 +12,7 @@ categories = [
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
 include = ["{src,tests,benchmarks}/**/*", "LICENSE-*", "README.md"]
 readme = "../README.md"
+documentation = "https://docs.rs/time"
 
 authors.workspace = true
 edition.workspace = true
