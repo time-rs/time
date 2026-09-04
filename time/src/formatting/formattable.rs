@@ -868,7 +868,7 @@ impl sealed::Sealed for Rfc3339 {
         let nanos = value.nanosecond(state);
         if nanos.get() != 0 {
             bytes += try_likely_ok!(write(output, "."));
-            try_likely_ok!(write(
+            bytes += try_likely_ok!(write(
                 output,
                 &num_fmt::truncated_subsecond_from_nanos(nanos)
             ));

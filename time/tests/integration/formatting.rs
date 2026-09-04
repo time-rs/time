@@ -805,3 +805,46 @@ fn unix_timestamp(
     assert_eq!(dt.format(format_description)?, expected);
     Ok(())
 }
+
+#[rstest]
+#[case(datetime!(2024-01-02 03:04:05 UTC), Rfc3339)]
+#[case(datetime!(2024-01-02 03:04:05.5 UTC), Rfc3339)]
+#[case(datetime!(2024-01-02 03:04:05.123456789 UTC), Rfc3339)]
+#[case(datetime!(2024-01-02 03:04:05.000000001 +02:30), Rfc3339)]
+#[case(datetime!(2024-01-02 03:04:05.123456789 UTC), Rfc2822)]
+#[case(datetime!(2024-01-02 03:04:05.123456789 UTC), Iso8601::DEFAULT)]
+#[case(
+    datetime!(2024-01-02 03:04:05.123456789 UTC),
+    Iso8601::<{
+        iso8601::Config::DEFAULT
+            .set_time_precision(TimePrecision::Hour { decimal_digits: None })
+            .encode()
+    }>,
+)]
+#[case(
+    datetime!(2024-01-02 03:04:05.123456789 +02:30),
+    Iso8601::<{
+        iso8601::Config::DEFAULT
+            .set_time_precision(TimePrecision::Hour {
+                decimal_digits: NonZero::new(3),
+            })
+            .encode()
+    }>,
+)]
+#[case(
+    datetime!(2024-01-02 03:04:05.123456789 UTC),
+    Iso8601::<{
+        iso8601::Config::DEFAULT
+            .set_time_precision(TimePrecision::Minute { decimal_digits: None })
+            .encode()
+    }>,
+)]
+fn format_into_returns_bytes_written(
+    #[case] dt: OffsetDateTime,
+    #[case] format: impl Formattable,
+) -> time::Result<()> {
+    let mut buf = Vec::new();
+    let reported = dt.format_into(&mut buf, &format)?;
+    assert_eq!(reported, buf.len());
+    Ok(())
+}

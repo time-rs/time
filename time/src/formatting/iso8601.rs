@@ -128,7 +128,7 @@ where
                 + (value.minute(state).get() as f64) / Minute::per_t::<f64>(Hour)
                 + (value.second(state).get() as f64) / Second::per_t::<f64>(Hour)
                 + (value.nanosecond(state).get() as f64) / Nanosecond::per_t::<f64>(Hour);
-            format_float(output, hours, 2, decimal_digits)?;
+            bytes += format_float(output, hours, 2, decimal_digits)?;
         }
         TimePrecision::Minute { decimal_digits } => {
             bytes += format_two_digits(output, value.hour(state).expand(), Padding::Zero)?;
