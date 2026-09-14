@@ -128,10 +128,10 @@ const unsafe fn write_two_digits(buf: &mut [MaybeUninit<u8>], offset: usize, val
 ///
 /// # Safety
 ///
-/// `buf` must be at least `offset` bytes long.
+/// `buf` must be at least `offset + 1` bytes long.
 #[inline]
 const unsafe fn write_one_digit(buf: &mut [MaybeUninit<u8>], offset: usize, value: ru8<0, 9>) {
-    // Safety: `buf` is at least `offset` bytes long.
+    // Safety: `buf` is at least `offset + 1` bytes long.
     unsafe {
         ptr::copy_nonoverlapping(
             single_digit(value).as_ptr().cast(),
