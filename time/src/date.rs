@@ -248,7 +248,9 @@ impl Date {
         let ordinal = week as i16 * 7 + weekday.number_from_monday() as i16 - jan_4;
 
         if ordinal <= 0 {
-            // Safety: `ordinal` is not zero.
+            // Safety: `ordinal` is not zero. For both values of `MIN_YEAR`, this branch is
+            // unreachable, so it is sound to subtract one from it and construct a new value with
+            // that year.
             return Ok(unsafe {
                 Self::__from_ordinal_date_unchecked(
                     year - 1,
