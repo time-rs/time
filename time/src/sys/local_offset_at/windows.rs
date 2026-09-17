@@ -71,10 +71,10 @@ fn filetime_to_secs(filetime: &FileTime) -> i64 {
 
 /// Convert an [`OffsetDateTime`] to a `SYSTEMTIME`.
 #[inline]
-fn offset_to_systemtime(datetime: OffsetDateTime) -> SystemTime {
+fn offset_to_systemtime(datetime: OffsetDateTime) -> Option<SystemTime> {
     let (_, month, day_of_month) = datetime.to_offset(UtcOffset::UTC).date().to_calendar_date();
-    SystemTime {
-        wYear: datetime.year().cast_unsigned().truncate(),
+    Some(SystemTime {
+        wYear: u16::try_from(datetime.year()).ok()?,
         wMonth: u8::from(month).widen(),
         wDay: day_of_month.widen(),
         wDayOfWeek: 0, // ignored
@@ -82,14 +82,14 @@ fn offset_to_systemtime(datetime: OffsetDateTime) -> SystemTime {
         wMinute: datetime.minute().widen(),
         wSecond: datetime.second().widen(),
         wMilliseconds: datetime.millisecond(),
-    }
+    })
 }
 
 /// Obtain the system's UTC offset.
 #[inline]
 pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // This function falls back to UTC if any system call fails.
-    let systime_utc = offset_to_systemtime(datetime.to_offset(UtcOffset::UTC));
+    let systime_utc = offset_to_systemtime(datetime.to_offset(UtcOffset::UTC))?;
 
     // Safety: `local_time` is only read if it is properly initialized, and
     // `SystemTimeToTzSpecificLocalTime` is thread-safe.
