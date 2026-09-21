@@ -178,3 +178,55 @@ fn rev_all_checks_all_months(
 fn rev_all_terminates(start: Month) {
     assert!(MonthIter::new(start).rev().all(|_| true));
 }
+
+#[apply(all_months)]
+fn any_advances_iterator(start: Month) {
+    let target = start.nth_next(2);
+    let mut iter = MonthIter::new(start);
+    let mut seen = Vec::new();
+    assert!(iter.any(|m| {
+        seen.push(m);
+        m == target
+    }));
+    assert_eq!(seen, [start, start.next(), target]);
+    assert_eq!(iter.next(), Some(target.next()));
+}
+
+#[apply(all_months)]
+fn all_advances_iterator(start: Month) {
+    let excludes = start.nth_next(2);
+    let mut iter = MonthIter::new(start);
+    let mut seen = Vec::new();
+    assert!(!iter.all(|m| {
+        seen.push(m);
+        m != excludes
+    }));
+    assert_eq!(seen, [start, start.next(), excludes]);
+    assert_eq!(iter.next(), Some(excludes.next()));
+}
+
+#[apply(all_months)]
+fn rev_any_advances_iterator(start: Month) {
+    let target = start.nth_prev(2);
+    let mut iter = MonthIter::new(start).rev();
+    let mut seen = Vec::new();
+    assert!(iter.any(|m| {
+        seen.push(m);
+        m == target
+    }));
+    assert_eq!(seen, [start, start.previous(), target]);
+    assert_eq!(iter.next(), Some(target.previous()));
+}
+
+#[apply(all_months)]
+fn rev_all_advances_iterator(start: Month) {
+    let excludes = start.nth_prev(2);
+    let mut iter = MonthIter::new(start).rev();
+    let mut seen = Vec::new();
+    assert!(!iter.all(|m| {
+        seen.push(m);
+        m != excludes
+    }));
+    assert_eq!(seen, [start, start.previous(), excludes]);
+    assert_eq!(iter.next(), Some(excludes.previous()));
+}

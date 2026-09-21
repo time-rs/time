@@ -78,19 +78,33 @@ impl Iterator for WeekdayIter {
     }
 
     #[inline]
-    fn all<F>(&mut self, f: F) -> bool
+    fn all<F>(&mut self, mut f: F) -> bool
     where
         F: FnMut(Self::Item) -> bool,
     {
-        ALL_WEEKDAYS.into_iter().all(f)
+        for _ in 0..ALL_WEEKDAYS.len() {
+            let day = self.current;
+            self.current = day.next();
+            if !f(day) {
+                return false;
+            }
+        }
+        true
     }
 
     #[inline]
-    fn any<F>(&mut self, f: F) -> bool
+    fn any<F>(&mut self, mut f: F) -> bool
     where
         F: FnMut(Self::Item) -> bool,
     {
-        ALL_WEEKDAYS.into_iter().any(f)
+        for _ in 0..ALL_WEEKDAYS.len() {
+            let day = self.current;
+            self.current = day.next();
+            if f(day) {
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -125,19 +139,33 @@ impl Iterator for Rev<WeekdayIter> {
     }
 
     #[inline]
-    fn all<F>(&mut self, f: F) -> bool
+    fn all<F>(&mut self, mut f: F) -> bool
     where
         F: FnMut(Self::Item) -> bool,
     {
-        ALL_WEEKDAYS.into_iter().all(f)
+        for _ in 0..ALL_WEEKDAYS.len() {
+            let day = self.iter.current;
+            self.iter.current = day.previous();
+            if !f(day) {
+                return false;
+            }
+        }
+        true
     }
 
     #[inline]
-    fn any<F>(&mut self, f: F) -> bool
+    fn any<F>(&mut self, mut f: F) -> bool
     where
         F: FnMut(Self::Item) -> bool,
     {
-        ALL_WEEKDAYS.into_iter().any(f)
+        for _ in 0..ALL_WEEKDAYS.len() {
+            let day = self.iter.current;
+            self.iter.current = day.previous();
+            if f(day) {
+                return true;
+            }
+        }
+        false
     }
 }
 

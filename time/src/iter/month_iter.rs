@@ -79,19 +79,33 @@ impl Iterator for MonthIter {
     }
 
     #[inline]
-    fn all<F>(&mut self, f: F) -> bool
+    fn all<F>(&mut self, mut f: F) -> bool
     where
         F: FnMut(Self::Item) -> bool,
     {
-        ALL_MONTHS.into_iter().all(f)
+        for _ in 0..ALL_MONTHS.len() {
+            let month = self.current;
+            self.current = month.next();
+            if !f(month) {
+                return false;
+            }
+        }
+        true
     }
 
     #[inline]
-    fn any<F>(&mut self, f: F) -> bool
+    fn any<F>(&mut self, mut f: F) -> bool
     where
         F: FnMut(Self::Item) -> bool,
     {
-        ALL_MONTHS.into_iter().any(f)
+        for _ in 0..ALL_MONTHS.len() {
+            let month = self.current;
+            self.current = month.next();
+            if f(month) {
+                return true;
+            }
+        }
+        false
     }
 
     #[inline]
@@ -142,19 +156,33 @@ impl Iterator for Rev<MonthIter> {
     }
 
     #[inline]
-    fn all<F>(&mut self, f: F) -> bool
+    fn all<F>(&mut self, mut f: F) -> bool
     where
         F: FnMut(Self::Item) -> bool,
     {
-        ALL_MONTHS.into_iter().all(f)
+        for _ in 0..ALL_MONTHS.len() {
+            let month = self.iter.current;
+            self.iter.current = month.previous();
+            if !f(month) {
+                return false;
+            }
+        }
+        true
     }
 
     #[inline]
-    fn any<F>(&mut self, f: F) -> bool
+    fn any<F>(&mut self, mut f: F) -> bool
     where
         F: FnMut(Self::Item) -> bool,
     {
-        ALL_MONTHS.into_iter().any(f)
+        for _ in 0..ALL_MONTHS.len() {
+            let month = self.iter.current;
+            self.iter.current = month.previous();
+            if f(month) {
+                return true;
+            }
+        }
+        false
     }
 
     #[inline]

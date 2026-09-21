@@ -134,3 +134,55 @@ fn rev_all_checks_all_weekdays(
 fn rev_all_terminates(start: Weekday) {
     assert!(WeekdayIter::new(start).rev().all(|_| true));
 }
+
+#[apply(all_weekdays)]
+fn any_advances_iterator(start: Weekday) {
+    let target = start.nth_next(2);
+    let mut iter = WeekdayIter::new(start);
+    let mut seen = Vec::new();
+    assert!(iter.any(|d| {
+        seen.push(d);
+        d == target
+    }));
+    assert_eq!(seen, [start, start.next(), target]);
+    assert_eq!(iter.next(), Some(target.next()));
+}
+
+#[apply(all_weekdays)]
+fn all_advances_iterator(start: Weekday) {
+    let excludes = start.nth_next(2);
+    let mut iter = WeekdayIter::new(start);
+    let mut seen = Vec::new();
+    assert!(!iter.all(|d| {
+        seen.push(d);
+        d != excludes
+    }));
+    assert_eq!(seen, [start, start.next(), excludes]);
+    assert_eq!(iter.next(), Some(excludes.next()));
+}
+
+#[apply(all_weekdays)]
+fn rev_any_advances_iterator(start: Weekday) {
+    let target = start.nth_prev(2);
+    let mut iter = WeekdayIter::new(start).rev();
+    let mut seen = Vec::new();
+    assert!(iter.any(|d| {
+        seen.push(d);
+        d == target
+    }));
+    assert_eq!(seen, [start, start.previous(), target]);
+    assert_eq!(iter.next(), Some(target.previous()));
+}
+
+#[apply(all_weekdays)]
+fn rev_all_advances_iterator(start: Weekday) {
+    let excludes = start.nth_prev(2);
+    let mut iter = WeekdayIter::new(start).rev();
+    let mut seen = Vec::new();
+    assert!(!iter.all(|d| {
+        seen.push(d);
+        d != excludes
+    }));
+    assert_eq!(seen, [start, start.previous(), excludes]);
+    assert_eq!(iter.next(), Some(excludes.previous()));
+}
