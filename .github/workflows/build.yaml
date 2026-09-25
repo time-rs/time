@@ -74,6 +74,8 @@ defaults:
   run:
     shell: bash
 
+permissions: {}
+
 on:
   push:
     branches: ["**"]
@@ -127,6 +129,8 @@ jobs:
   check-targets:
     name: Type checking (${{ matrix.name }}, shard ${{ matrix.shard }})
     runs-on: *default-os
+    permissions:
+      contents: read
     needs: compute-shards
     if: *pr-or-push
     strategy:
@@ -289,6 +293,8 @@ jobs:
   test:
     name: Test (${{ matrix.os.name }}, ${{ matrix.rust.name }})
     runs-on: ${{ matrix.os.value }}
+    permissions:
+      contents: read
     if: *pr-or-push
     strategy:
       matrix:
@@ -315,6 +321,9 @@ jobs:
   miri-prepare:
     name: Prepare miri
     runs-on: *default-os
+    permissions:
+      contents: read
+      actions: write
     if: *pr-or-push
     steps:
       - *checkout
@@ -395,6 +404,9 @@ jobs:
   miri:
     name: Test (miri, shard ${{ matrix.shard }})
     runs-on: *default-os
+    permissions:
+      contents: read
+      actions: read
     needs:
       - compute-shards
       - miri-prepare
@@ -483,6 +495,8 @@ jobs:
   miri-cleanup:
     name: Clean up miri artifact
     runs-on: *default-os
+    permissions:
+      actions: write
     needs: miri
     if: ${{ always() && ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push') }}
     steps:
@@ -495,7 +509,7 @@ jobs:
     runs-on: *default-os
     timeout-minutes: 10 # this step has hung before
     permissions:
-      issues: write
+      contents: read
       statuses: write
     if: *pr-or-push
     steps:

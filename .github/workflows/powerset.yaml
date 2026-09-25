@@ -66,6 +66,8 @@ defaults:
   run:
     shell: bash
 
+permissions: {}
+
 on:
   push:
     tags:
@@ -96,6 +98,8 @@ jobs:
   check:
     name: Type checking (shard ${{ matrix.shard }}, ${{ matrix.name }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: compute-shards
     strategy:
       matrix:

@@ -5,6 +5,9 @@ on:
     - cron: "0 0 * * 1" # midnight on Monday
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   security-audit:
     name: Dependency audit
