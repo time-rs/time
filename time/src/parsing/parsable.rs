@@ -57,26 +57,6 @@ mod sealed {
             _: PrivateMethod,
         ) -> Result<&'a [u8], error::Parse>;
 
-        /// # **DO NOT USE THIS METHOD**
-        ///
-        /// This method is for internal use only, has never been part of the public API, and will be
-        /// removed in a future release. If you are relying on the existence of this method, your
-        /// code will be broken in the future. The removal of this method will not be considered a
-        /// breaking change due to the internal nature and the fact that it was never documented as
-        /// part of the public API.
-        ///
-        /// You should use the `parse` method on the target type instead. For example, to parse a
-        /// [`Date`], use [`Date::parse`].
-        #[deprecated(
-            since = "0.3.53",
-            note = "use the `parse` method on the target type; this method has never been part of \
-                    the public API and will be removed in a future release"
-        )]
-        #[doc(hidden)]
-        fn parse(&self, input: &[u8]) -> Result<Parsed, error::Parse> {
-            self.parse_internal(input, None, PrivateMethod)
-        }
-
         /// Parse the items into a [`Parsed`] struct, using the provided defaults for any components
         /// that are not present in the input.
         ///
