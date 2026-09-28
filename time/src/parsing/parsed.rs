@@ -1212,8 +1212,7 @@ impl TryFrom<Parsed> for Date {
                 year,
                 (sunday_week_number.cast_signed().widen::<i16>() * 7
                     + weekday.number_days_from_sunday().cast_signed().widen::<i16>()
-                    - adjustment(year)
-                    + 1).cast_unsigned(),
+                    - (adjustment(year) % 7)).cast_unsigned(),
             )?),
             (year, monday_week_number, weekday) => Ok(Self::from_ordinal_date(
                 year,
