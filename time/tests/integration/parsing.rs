@@ -531,42 +531,42 @@ fn parse_time_invalid_component(
 )]
 #[case(
     fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
-    "2021-W00-6",
+    "2021-W00-7",
     date!(2021-01-02)
 )]
 #[case(
     fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
-    "2023-W01-1",
+    "2023-W01-2",
     date!(2023-01-02)
 )]
 #[case(
     fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
-    "2022-W00-7",
+    "2022-W01-1",
     date!(2022-01-02)
 )]
 #[case(
     fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
-    "2026-W00-5",
+    "2026-W00-6",
     date!(2026-01-02)
 )]
 #[case(
     fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
-    "2025-W00-4",
+    "2025-W00-5",
     date!(2025-01-02)
 )]
 #[case(
     fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
-    "2019-W00-3",
+    "2019-W00-4",
     date!(2019-01-02)
 )]
 #[case(
     fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
-    "2018-W01-2",
+    "2018-W00-3",
     date!(2018-01-02)
 )]
 #[case(
     fd!("[year padding:space]-W[week_number repr:sunday padding:none]-[weekday repr:sunday]"),
-    " 201-W01-2",
+    " 201-W01-3",
     date!(201-01-06)
 )]
 fn parse_date(
@@ -579,6 +579,20 @@ fn parse_date(
         Date::parse(input, &OwnedFormatItem::from(format_description)).ok(),
         Some(expected)
     );
+}
+
+#[rstest]
+#[case(fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"))]
+#[case(fd!("[year]-W[week_number repr:monday]-[weekday repr:monday]"))]
+fn parse_date_week_number_roundtrip(#[case] format_description: StaticFormatDescription) {
+    let mut date = date!(2000-01-01);
+    while date <= date!(2027-12-31) {
+        let formatted = date
+            .format(format_description)
+            .expect("formatting should succeed");
+        assert_eq!(Date::parse(&formatted, format_description).ok(), Some(date));
+        date = date.next_day().expect("date should be in range");
+    }
 }
 
 #[rstest]
