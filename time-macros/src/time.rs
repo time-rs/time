@@ -1,5 +1,6 @@
 use std::iter::{self, Peekable};
 
+use num_conv::prelude::*;
 use proc_macro::{Span, TokenStream, TokenTree, token_stream};
 use time_core::unit::*;
 
@@ -108,7 +109,7 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
             }
         };
 
-    let hour = match (hour, period) {
+    let hour: u16 = match (hour, period) {
         (0, Period::Am | Period::Pm) => {
             return Err(Error::InvalidComponent {
                 name: "hour",
@@ -146,7 +147,7 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
         })
     } else {
         Ok(Time {
-            hour,
+            hour: hour.truncate(), // checked to be in range
             minute,
             second,
             nanosecond,
