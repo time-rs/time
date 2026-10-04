@@ -95,6 +95,15 @@ fn from_nanoseconds(#[case] nanoseconds: i128, #[case] expected: impl Into<Optio
 }
 
 #[rstest]
+#[case(timestamp!(1.123_456_789_9), timestamp!(1.123_456_789))]
+#[case(timestamp!(-1.123_456_789_9), timestamp!(-1.123_456_789))]
+#[case(timestamp!(-1.000_000_000_1), timestamp!(-1))]
+#[case(timestamp!(-0.000_000_000_1), Timestamp::UNIX_EPOCH)]
+fn fractional_precision(#[case] actual: Timestamp, #[case] expected: Timestamp) {
+    assert_eq!(actual, expected);
+}
+
+#[rstest]
 #[case(timestamp!(0), offset!(UTC), 0)]
 #[case(timestamp!(1_546_398_245), offset!(+1), 4)]
 fn to_offset(#[case] ts: Timestamp, #[case] offset: UtcOffset, #[case] expected_hour: u8) {

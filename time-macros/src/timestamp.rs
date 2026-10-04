@@ -1,7 +1,6 @@
-use std::iter::Peekable;
+use std::iter::{self, Peekable};
 
 use proc_macro::{TokenTree, token_stream};
-use time_core::unit::*;
 use time_core::util::days_in_year;
 
 use crate::date::{Date, MAX_YEAR, MIN_YEAR};
@@ -76,17 +75,18 @@ pub(crate) fn parse(tokens: &mut Peekable<token_stream::IntoIter>) -> Result<Tim
 
     let seconds = parse_number::<i64>("timestamp", seconds_str)?;
     let nanoseconds = if let Some(fractional) = fractional {
-        // It's simpler to rely on existing helpers than to reimplement everything here. We can't do
-        // this for the overall value due to the large range of valid timestamps, meaning that 9+
-        // digits of precision is not guaranteed.
-        let frac = format!("0.{fractional}");
-        let parsed = parse_number::<f64>("timestamp", &frac)?;
-        (parsed.fract() * Nanosecond::per_t::<f64>(Second)).round() as u32
+        let nanoseconds = fractional
+            .replace('_', "")
+            .chars()
+            .chain(iter::repeat('0'))
+            .take(9)
+            .collect::<String>();
+        parse_number::<u32>("timestamp", &nanoseconds)?
     } else {
         0
     };
 
-    let (seconds, nanoseconds) = match (is_negative, fractional.is_some()) {
+    let (seconds, nanoseconds) = match (is_negative, nanoseconds != 0) {
         (true, true) => (-seconds - 1, 1_000_000_000 - nanoseconds),
         (true, false) => (-seconds, 0),
         (false, _) => (seconds, nanoseconds),
