@@ -111,8 +111,8 @@ pub enum Component {
     /// A Unix timestamp.
     #[deprecated(
         since = "0.3.48",
-        note = "use `UnixTimestampSeconds`, `UnixTimestampMilliseconds`, \
-                `UnixTimestampMicroseconds`, or `UnixTimestampNanoseconds` instead"
+        note = "use `UnixTimestampSecond`, `UnixTimestampMillisecond`, \
+                `UnixTimestampMicrosecond`, or `UnixTimestampNanosecond` instead"
     )]
     UnixTimestamp(modifier::UnixTimestamp),
     /// Year of the date.
