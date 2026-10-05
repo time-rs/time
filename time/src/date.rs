@@ -1230,12 +1230,12 @@ impl Date {
             }
             // February 29 does not exist in common years.
             (true, false) if ordinal == 60 => Err(error::ComponentRange::conditional("day")),
-            // We're going from a common year to a leap year. Shift dates in March and later by
-            // one day.
+            // We're going from a common year to a leap year. Shift dates in March and later back by
+            // one day because February 29 now exists in the leap year.
             // Safety: `ordinal` is not zero and `is_leap_year` is correct.
             (false, true) => Ok(unsafe { Self::from_parts(year, true, ordinal + 1) }),
-            // We're going from a leap year to a common year. Shift dates in January and
-            // February by one day.
+            // We're going from a leap year to a common year. Shift dates in March and later up by
+            // one day because February 29 does not exist in common years.
             // Safety: `ordinal` is not zero and `is_leap_year` is correct.
             (true, false) => Ok(unsafe { Self::from_parts(year, false, ordinal - 1) }),
         }
