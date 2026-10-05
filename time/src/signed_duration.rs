@@ -50,8 +50,8 @@ type Nanoseconds =
 pub struct SignedDuration {
     /// Number of whole seconds.
     seconds: i64,
-    /// Number of nanoseconds within the second. The sign always matches the `seconds` field.
-    // Sign must match that of `seconds` (though this is not a safety requirement).
+    /// Number of nanoseconds within the second. When both `seconds` and `nanoseconds` are
+    /// non-zero, the signs must match.
     nanoseconds: Nanoseconds,
     _padding: Padding,
 }
@@ -396,8 +396,8 @@ impl SignedDuration {
     ///
     /// - `nanoseconds` must be in the range `-999_999_999..=999_999_999`.
     ///
-    /// While the sign of `nanoseconds` is required to be the same as the sign of `seconds`, this is
-    /// not a safety invariant.
+    /// When both `seconds` and `nanoseconds` are not zero, the sign of the two values should match.
+    /// This is **not** a safety invariant.
     #[inline]
     #[track_caller]
     pub(crate) const unsafe fn new_unchecked(seconds: i64, nanoseconds: i32) -> Self {
