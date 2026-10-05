@@ -49,6 +49,7 @@ impl ToTokenTree for &str {
 
 impl ToTokenTree for NonZero<u16> {
     fn into_token_tree(self) -> TokenTree {
+        // Safety: `self.get()` cannot be zero because `self` is a `NonZero<u16>`.
         quote_group! {{
             unsafe { ::core::num::NonZero::<u16>::new_unchecked(#(self.get())) }
         }}

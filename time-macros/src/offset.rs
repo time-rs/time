@@ -7,6 +7,11 @@ use crate::Error;
 use crate::helpers::{consume_any_ident, consume_number, consume_punct};
 use crate::to_tokens::ToTokenStream;
 
+/// A parsed UTC offset.
+///
+/// The hours must be in `-25..=25`, and the minutes and seconds in `-59..=59`. These ranges are
+/// required by the unchecked `UtcOffset` constructor used when emitting this value. All nonzero
+/// components also have the same sign, as required for a valid offset.
 pub(crate) struct Offset {
     pub(crate) hours: i8,
     pub(crate) minutes: i8,
@@ -84,6 +89,7 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Offs
 
 impl ToTokenStream for Offset {
     fn append_to(self, ts: &mut TokenStream) {
+        // Safety: The parser checks each component's range and applies the same sign to all.
         quote_append! { ts
             unsafe {
                 ::time::UtcOffset::__from_hms_unchecked(

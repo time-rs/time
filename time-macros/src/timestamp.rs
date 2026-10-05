@@ -40,6 +40,10 @@ const MIN: i64 = UtcDateTime {
 .to_timestamp()
 .0;
 
+/// A parsed timestamp.
+///
+/// The seconds must be in `MIN..=MAX`, and the nanoseconds in `0..1_000_000_000`. These ranges are
+/// required by the unchecked `Timestamp` constructor used when emitting this value.
 pub(crate) struct Timestamp {
     seconds: i64,
     nanoseconds: u32,
@@ -115,6 +119,8 @@ pub(crate) fn parse(tokens: &mut Peekable<token_stream::IntoIter>) -> Result<Tim
 
 impl ToTokenStream for Timestamp {
     fn append_to(self, ts: &mut proc_macro::TokenStream) {
+        // Safety: The parser checks the seconds range and normalizes the nanoseconds before
+        // constructing `Timestamp`.
         quote_append! { ts
             unsafe {
                 ::time::Timestamp::__new_unchecked(

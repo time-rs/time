@@ -15,6 +15,10 @@ pub(crate) const MAX_YEAR: i32 = 999_999;
 #[cfg(not(feature = "large-dates"))]
 pub(crate) const MAX_YEAR: i32 = 9_999;
 
+/// A parsed date.
+///
+/// The year must be in `MIN_YEAR..=MAX_YEAR`, and the ordinal must be in `1..=days_in_year(year)`.
+/// Both ranges are required by the unchecked `Date` constructor used when emitting this value.
 pub(crate) struct Date {
     pub(crate) year: i32,
     pub(crate) ordinal: u16,
@@ -152,6 +156,8 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
 
 impl ToTokenStream for Date {
     fn append_to(self, ts: &mut proc_macro::TokenStream) {
+        // Safety: The parser checks both ranges before constructing `Date`. ISO week conversion
+        // also rejects dates beyond the maximum supported year.
         quote_append! { ts
             unsafe {
                 ::time::Date::__from_ordinal_date_unchecked(

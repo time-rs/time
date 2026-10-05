@@ -14,6 +14,11 @@ enum Period {
     _24,
 }
 
+/// A parsed time.
+///
+/// The hour must be in `0..24`, the minute and second in `0..60`, and the nanosecond in
+/// `0..1_000_000_000`. These ranges are required by the unchecked `Time` constructor used when
+/// emitting this value.
 pub(crate) struct Time {
     pub(crate) hour: u8,
     pub(crate) minute: u8,
@@ -157,6 +162,7 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
 
 impl ToTokenStream for Time {
     fn append_to(self, ts: &mut TokenStream) {
+        // Safety: The parser checks all four components before constructing `Time`.
         quote_append! { ts
             unsafe {
                 ::time::Time::__from_hms_nanos_unchecked(
