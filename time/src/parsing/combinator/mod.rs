@@ -304,14 +304,14 @@ impl ExactlyNDigits<9> {
 
         let mut digits = [*a, *b, *c, *d, *e, *f, *g, *h];
         digits = [
-            digits[0] - b'0',
-            digits[1] - b'0',
-            digits[2] - b'0',
-            digits[3] - b'0',
-            digits[4] - b'0',
-            digits[5] - b'0',
-            digits[6] - b'0',
-            digits[7] - b'0',
+            digits[0].wrapping_sub(b'0'),
+            digits[1].wrapping_sub(b'0'),
+            digits[2].wrapping_sub(b'0'),
+            digits[3].wrapping_sub(b'0'),
+            digits[4].wrapping_sub(b'0'),
+            digits[5].wrapping_sub(b'0'),
+            digits[6].wrapping_sub(b'0'),
+            digits[7].wrapping_sub(b'0'),
         ];
         let ones_digit = (*i as u32).wrapping_sub(b'0' as u32);
 

@@ -498,6 +498,15 @@ fn parse_time_unexpected_trailing_characters(
 #[case("123456a", fd!("[subsecond digits:7]"), "subsecond")]
 #[case("1234567a", fd!("[subsecond digits:8]"), "subsecond")]
 #[case("12345678a", fd!("[subsecond digits:9]"), "subsecond")]
+#[case("/23456789", fd!("[subsecond digits:9]"), "subsecond")]
+#[case("1/3456789", fd!("[subsecond digits:9]"), "subsecond")]
+#[case("12/456789", fd!("[subsecond digits:9]"), "subsecond")]
+#[case("123/56789", fd!("[subsecond digits:9]"), "subsecond")]
+#[case("1234/6789", fd!("[subsecond digits:9]"), "subsecond")]
+#[case("12345/789", fd!("[subsecond digits:9]"), "subsecond")]
+#[case("123456/89", fd!("[subsecond digits:9]"), "subsecond")]
+#[case("1234567/9", fd!("[subsecond digits:9]"), "subsecond")]
+#[case("12345678/", fd!("[subsecond digits:9]"), "subsecond")]
 fn parse_time_invalid_component(
     #[case] input: &str,
     #[case] fd: StaticFormatDescription,
