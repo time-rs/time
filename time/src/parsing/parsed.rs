@@ -1338,7 +1338,10 @@ impl TryFrom<Parsed> for UtcDateTime {
             Time::try_from(parsed)?,
             utc_offset_try_from_parsed::<false>(parsed)?,
         )
-        .to_utc();
+        .checked_to_utc()
+        .ok_or(error::TryFromParsed::ComponentRange(
+            error::ComponentRange::conditional("year"),
+        ))?;
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
             return Err(error::TryFromParsed::ComponentRange(

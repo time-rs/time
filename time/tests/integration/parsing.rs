@@ -830,6 +830,26 @@ fn parse_utc_date_time_insufficient_information(
 }
 
 #[rstest]
+fn parse_utc_date_time_out_of_range_after_offset() {
+    let input = if cfg!(feature = "large-dates") {
+        "+999999-12-31T23:59:59-01:00"
+    } else {
+        "9999-12-31T23:59:59-01:00"
+    };
+    let format =
+        fd!("[year]-[month]-[day]T[hour]:[minute]:[second][offset_hour \
+             sign:mandatory]:[offset_minute]");
+
+    assert!(matches!(
+        UtcDateTime::parse(input, &format),
+        Err(error::Parse::TryFromParsed(
+            error::TryFromParsed::ComponentRange(component)
+        )) if component.name() == "year" && component.is_conditional()
+    ));
+    assert!(Timestamp::parse(input, &format).is_err());
+}
+
+#[rstest]
 #[case("2021 001 13 PM", fd!("[year] [ordinal] [hour repr:12] [period]"), "hour")]
 #[case("x", fd!("[year]"), "year")]
 #[case(
