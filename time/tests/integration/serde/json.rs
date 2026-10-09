@@ -111,6 +111,12 @@ where
 #[case(PhantomData::<Date>, Compact, "[2022,95]", date!(2022-04-05))]
 #[case(PhantomData::<Date>, Readable, "[2022,95]", date!(2022-04-05))]
 #[case(PhantomData::<Date>, Readable, r#""2022-04-05""#, date!(2022-04-05))]
+#[case(PhantomData::<FlattenParent>, Readable, r#"{"dt": "2026-10-09T18:58-03:00", "opt_dt": null}"#, FlattenParent {
+    child: FlattenChild {
+        dt: datetime!(2026-10-09 18:58 -03:00),
+        opt_dt: None,
+    }
+})]
 fn deserialize<T>(
     #[case] _type: PhantomData<T>,
     #[case] format: Format,
@@ -126,4 +132,24 @@ fn deserialize<T>(
     }
     .expect("deserialization failed");
     assert_eq!(value, expected);
+}
+
+time::serde::format_description!(
+    offset_dt_short,
+    OffsetDateTime,
+    "[year]-[month]-[day]T[hour]:[minute][offset_hour sign:mandatory]:[offset_minute]"
+);
+
+#[derive(Deserialize, Debug, PartialEq, Eq)]
+struct FlattenParent {
+    #[serde(flatten)]
+    child: FlattenChild,
+}
+
+#[derive(Deserialize, Debug, PartialEq, Eq)]
+struct FlattenChild {
+    #[serde(with = "offset_dt_short")]
+    dt: OffsetDateTime,
+    #[serde(with = "offset_dt_short::option", default)]
+    opt_dt: Option<OffsetDateTime>,
 }
