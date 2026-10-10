@@ -69,6 +69,12 @@ pub(crate) fn build(
                 ) -> Result<Option<__TimeSerdeType>, E> {
                     Ok(None)
                 }
+
+                fn visit_unit<E: ::serde::de::Error>(
+                    self
+                ) -> Result<Option<__TimeSerdeType>, E> {
+                    Ok(None)
+                }
             }
         }
     } else {

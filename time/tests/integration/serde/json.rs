@@ -111,12 +111,17 @@ where
 #[case(PhantomData::<Date>, Compact, "[2022,95]", date!(2022-04-05))]
 #[case(PhantomData::<Date>, Readable, "[2022,95]", date!(2022-04-05))]
 #[case(PhantomData::<Date>, Readable, r#""2022-04-05""#, date!(2022-04-05))]
-#[case(PhantomData::<FlattenParent>, Readable, r#"{"dt": "2026-10-09T18:58-03:00", "opt_dt": null}"#, FlattenParent {
-    child: FlattenChild {
-        dt: datetime!(2026-10-09 18:58 -03:00),
-        opt_dt: None,
+#[case(
+    PhantomData::<FlattenParent>,
+    Readable,
+    r#"{"dt": "2026-10-09T18:58-03:00", "opt_dt": null}"#,
+    FlattenParent {
+        child: FlattenChild {
+            dt: datetime!(2026-10-09 18:58 -03:00),
+            opt_dt: None,
+        }
     }
-})]
+)]
 fn deserialize<T>(
     #[case] _type: PhantomData<T>,
     #[case] format: Format,
