@@ -705,6 +705,8 @@ impl Timestamp {
 
     /// Get the hour of the timestamp in UTC.
     ///
+    /// The returned value will always be in the range `0..24`.
+    ///
     /// ```rust
     /// # use time_macros::timestamp;
     /// assert_eq!(timestamp!(1_546_398_245).hour(), 3);
@@ -715,6 +717,8 @@ impl Timestamp {
     }
 
     /// Get the minute of the timestamp in UTC.
+    ///
+    /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
     /// # use time_macros::timestamp;
@@ -728,6 +732,8 @@ impl Timestamp {
 
     /// Get the second of the timestamp in UTC.
     ///
+    /// The returned value will always be in the range `0..60`.
+    ///
     /// ```rust
     /// # use time_macros::timestamp;
     /// assert_eq!(timestamp!(1_546_398_245).second(), 5);
@@ -738,6 +744,8 @@ impl Timestamp {
     }
 
     /// Get the millisecond of the timestamp in UTC.
+    ///
+    /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
     /// # use time_macros::timestamp;
@@ -750,6 +758,8 @@ impl Timestamp {
 
     /// Get the microsecond of the timestamp in UTC.
     ///
+    /// The returned value will always be in the range `0..1_000_000`.
+    ///
     /// ```rust
     /// # use time_macros::timestamp;
     /// assert_eq!(timestamp!(1_546_398_245.006_007).microsecond(), 6_007);
@@ -760,6 +770,8 @@ impl Timestamp {
     }
 
     /// Get the nanosecond of the timestamp in UTC.
+    ///
+    /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
     /// # use time_macros::timestamp;
