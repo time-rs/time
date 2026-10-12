@@ -26,7 +26,7 @@ use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::days_in_year;
 use crate::{
-    Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, UtcOffset, Weekday, error,
+    Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, Timestamp, UtcOffset, Weekday, error,
 };
 
 /// The Julian day of the Unix epoch.
@@ -388,6 +388,15 @@ impl UtcDateTime {
         let minutes = self.minute() as i64 * Second::per_t::<i64>(Minute);
         let seconds = self.second() as i64;
         days + hours + minutes + seconds
+    }
+
+
+    /// Convert this UTC date time to a [`Timestamp`]
+    #[inline]
+    pub const fn timestamp(self) -> Timestamp {
+        unsafe {
+            Timestamp::__new_unchecked(self.unix_timestamp(), self.nanosecond())
+        }
     }
 
     /// Get the Unix timestamp in nanoseconds.
