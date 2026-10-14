@@ -1159,7 +1159,7 @@ impl TryFrom<Parsed> for Date {
         /// numbering.
         #[inline]
         const fn adjustment(year: i32) -> i16 {
-            // Safety: `ordinal` is not zero.
+            // Safety: `year` is in `MIN_YEAR..=MAX_YEAR`, and ordinal 1 is valid for every year.
             match unsafe { Date::__from_ordinal_date_unchecked(year, 1) }.weekday() {
                 Weekday::Monday => 7,
                 Weekday::Tuesday => 1,

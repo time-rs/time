@@ -94,6 +94,7 @@ impl Date {
     ///
     /// # Safety
     ///
+    /// - `year` must be in the range `MIN_YEAR..=MAX_YEAR`
     /// - `ordinal` must be non-zero and at most the number of days in `year`
     /// - `is_leap_year` must be `true` if and only if `year` is a leap year
     #[inline]
@@ -106,7 +107,7 @@ impl Date {
         debug_assert!(range_validated::is_leap_year(year) == is_leap_year);
 
         Self {
-            // Safety: `ordinal` is not zero.
+            // Safety: `ordinal` is not zero, so the overall value will never be zero.
             value: unsafe {
                 NonZero::new_unchecked((year << 10) | ((is_leap_year as i32) << 9) | ordinal as i32)
             },
@@ -124,8 +125,8 @@ impl Date {
     #[inline]
     #[track_caller]
     pub const unsafe fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
-        // Safety: The caller must guarantee that `ordinal` is not zero and that the year is in
-        // range.
+        // Safety: The caller must guarantee that `year` is in range and `ordinal` is in
+        // `1..=days_in_year(year)`.
         unsafe { Self::from_parts(year, range_validated::is_leap_year(year), ordinal) }
     }
 
