@@ -1,5 +1,4 @@
 use std::fmt::Debug;
-use std::marker::PhantomData;
 
 use rstest::rstest;
 use serde::{Deserialize, Serialize};
@@ -7,7 +6,7 @@ use serde_test2::Configure;
 use time::Month::*;
 use time::Weekday::*;
 use time::macros::{date, datetime, time};
-use time::{Date, Month, OffsetDateTime, PlainDateTime, SignedDuration, Time, Weekday};
+use time::{OffsetDateTime, SignedDuration};
 
 enum Format {
     Compact,
@@ -42,77 +41,59 @@ where
 }
 
 #[rstest]
-#[case(PhantomData::<Weekday>, Compact, "1", Monday)]
-#[case(PhantomData::<Weekday>, Readable, "1", Monday)]
-#[case(PhantomData::<Weekday>, Readable, r#""Monday""#, Monday)]
-#[case(PhantomData::<Month>, Compact, "3", March)]
-#[case(PhantomData::<Month>, Readable, "3", March)]
-#[case(PhantomData::<Month>, Readable, r#""March""#, March)]
-#[case(PhantomData::<Time>, Compact, "[12,40,20,0]", time!(12:40:20))]
-#[case(PhantomData::<Time>, Readable, "[12,40,20,0]", time!(12:40:20))]
-#[case(PhantomData::<Time>, Readable, r#""12:40:20.0""#, time!(12:40:20))]
+#[case(Compact, "1", Monday)]
+#[case(Readable, "1", Monday)]
+#[case(Readable, r#""Monday""#, Monday)]
+#[case(Compact, "3", March)]
+#[case(Readable, "3", March)]
+#[case(Readable, r#""March""#, March)]
+#[case(Compact, "[12,40,20,0]", time!(12:40:20))]
+#[case(Readable, "[12,40,20,0]", time!(12:40:20))]
+#[case(Readable, r#""12:40:20.0""#, time!(12:40:20))]
 #[case(
-    PhantomData::<PlainDateTime>,
     Compact,
     "[2022,140,12,40,20,0]",
     datetime!(2022-05-20 12:40:20),
 )]
 #[case(
-    PhantomData::<PlainDateTime>,
     Readable,
     "[2022,140,12,40,20,0]",
     datetime!(2022-05-20 12:40:20),
 )]
 #[case(
-    PhantomData::<PlainDateTime>,
     Readable,
     r#""2022-05-20 12:40:20.0""#,
     datetime!(2022-05-20 12:40:20),
 )]
 #[case(
-    PhantomData::<OffsetDateTime>,
     Compact,
     "[2022,140,12,40,20,0,0,0,0]",
     datetime!(2022-05-20 12:40:20 UTC),
 )]
 #[case(
-    PhantomData::<OffsetDateTime>,
     Readable,
     "[2022,140,12,40,20,0,0,0,0]",
     datetime!(2022-05-20 12:40:20 UTC),
 )]
 #[case(
-    PhantomData::<OffsetDateTime>,
     Readable,
     r#""2022-05-20 12:40:20.0 +00:00:00""#,
     datetime!(2022-05-20 12:40:20 UTC),
 )]
-#[case(PhantomData::<SignedDuration>, Compact, "[50,0]", SignedDuration::new(50, 0))]
-#[case(PhantomData::<SignedDuration>, Readable, "[50,0]", SignedDuration::new(50, 0))]
-#[case(PhantomData::<SignedDuration>, Readable, r#""50.000000000""#, SignedDuration::new(50, 0))]
+#[case(Compact, "[50,0]", SignedDuration::new(50, 0))]
+#[case(Readable, "[50,0]", SignedDuration::new(50, 0))]
+#[case(Readable, r#""50.000000000""#, SignedDuration::new(50, 0))]
+#[case(Readable, r#""0.1""#, SignedDuration::new(0, 100_000_000))]
+#[case(Readable, r#""0.123""#, SignedDuration::new(0, 123_000_000))]
 #[case(
-    PhantomData::<SignedDuration>,
-    Readable,
-    r#""0.1""#,
-    SignedDuration::new(0, 100_000_000),
-)]
-#[case(
-    PhantomData::<SignedDuration>,
-    Readable,
-    r#""0.123""#,
-    SignedDuration::new(0, 123_000_000),
-)]
-#[case(
-    PhantomData::<SignedDuration>,
     Readable,
     r#""-0.1""#,
     SignedDuration::new(0, -100_000_000),
 )]
-#[case(PhantomData::<Date>, Compact, "[2022,95]", date!(2022-04-05))]
-#[case(PhantomData::<Date>, Readable, "[2022,95]", date!(2022-04-05))]
-#[case(PhantomData::<Date>, Readable, r#""2022-04-05""#, date!(2022-04-05))]
+#[case(Compact, "[2022,95]", date!(2022-04-05))]
+#[case(Readable, "[2022,95]", date!(2022-04-05))]
+#[case(Readable, r#""2022-04-05""#, date!(2022-04-05))]
 #[case(
-    PhantomData::<FlattenParent>,
     Readable,
     r#"{"dt": "2026-10-09T18:58-03:00", "opt_dt": null}"#,
     FlattenParent {
@@ -122,12 +103,8 @@ where
         }
     }
 )]
-fn deserialize<T>(
-    #[case] _type: PhantomData<T>,
-    #[case] format: Format,
-    #[case] value: &str,
-    #[case] expected: T,
-) where
+fn deserialize<T>(#[case] format: Format, #[case] value: &str, #[case] expected: T)
+where
     T: Debug + PartialEq + for<'de> Deserialize<'de>,
 {
     let mut de = serde_json::Deserializer::from_str(value);
