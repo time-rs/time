@@ -45,7 +45,42 @@ struct TestNanoseconds {
         Token::StructEnd,
     ],
 )]
-// TODO add cases for milliseconds, microseconds, and nanoseconds when serde_test supports i128
+#[case(
+    TestMilliseconds { dt: datetime!(2000-01-01 00:00:00 UTC) },
+    &[
+        Token::Struct {
+            name: "TestMilliseconds",
+            len: 1,
+        },
+        Token::Str("dt"),
+        Token::I128(946684800000),
+        Token::StructEnd,
+    ],
+)]
+#[case(
+    TestMicroseconds { dt: datetime!(2000-01-01 00:00:00 UTC) },
+    &[
+        Token::Struct {
+            name: "TestMicroseconds",
+            len: 1,
+        },
+        Token::Str("dt"),
+        Token::I128(946684800000000),
+        Token::StructEnd,
+    ],
+)]
+#[case(
+    TestNanoseconds { dt: datetime!(2000-01-01 00:00:00 UTC) },
+    &[
+        Token::Struct {
+            name: "TestNanoseconds",
+            len: 1,
+        },
+        Token::Str("dt"),
+        Token::I128(946684800000000000),
+        Token::StructEnd,
+    ],
+)]
 fn round_trip<T>(#[case] value: T, #[case] tokens: &[Token])
 where
     T: Debug + PartialEq + Serialize + for<'de> Deserialize<'de>,
