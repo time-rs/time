@@ -34,13 +34,13 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
 }
 
 impl ToTokenStream for DateTime {
-    fn append_to(self, ts: &mut TokenStream) {
+    fn into_token_stream(self) -> TokenStream {
         let maybe_offset = match self.offset {
-            Some(offset) => quote_! { .assume_offset(#S(offset)) },
-            None => quote_! {},
+            Some(offset) => quote! { .assume_offset(#S(offset)) },
+            None => quote! {},
         };
 
-        quote_append! { ts
+        quote! {
             ::time::PlainDateTime::new(
                 #S(self.date),
                 #S(self.time),

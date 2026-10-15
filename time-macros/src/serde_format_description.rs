@@ -13,7 +13,7 @@ pub(crate) fn build(
     let ty_s = &*ty.to_string();
 
     let visitor = if cfg!(feature = "parsing") {
-        quote_! {
+        quote! {
             pub(super) struct Visitor;
             pub(super) struct OptionVisitor;
 
@@ -72,11 +72,11 @@ pub(crate) fn build(
             }
         }
     } else {
-        quote_!()
+        quote!()
     };
 
     let serialize_primary = if cfg!(feature = "formatting") {
-        quote_! {
+        quote! {
             pub fn serialize<S: ::serde::Serializer>(
                 datetime: &__TimeSerdeType,
                 serializer: S,
@@ -89,11 +89,11 @@ pub(crate) fn build(
             }
         }
     } else {
-        quote_!()
+        quote!()
     };
 
     let deserialize_primary = if cfg!(feature = "parsing") {
-        quote_! {
+        quote! {
             pub fn deserialize<'a, D: ::serde::Deserializer<'a>>(
                 deserializer: D
             ) -> Result<__TimeSerdeType, D::Error> {
@@ -102,11 +102,11 @@ pub(crate) fn build(
             }
         }
     } else {
-        quote_!()
+        quote!()
     };
 
     let serialize_option = if cfg!(feature = "formatting") {
-        quote_! {
+        quote! {
             #[expect(clippy::ref_option)]
             pub fn serialize<S: ::serde::Serializer>(
                 option: &Option<__TimeSerdeType>,
@@ -120,11 +120,11 @@ pub(crate) fn build(
             }
         }
     } else {
-        quote_!()
+        quote!()
     };
 
     let deserialize_option = if cfg!(feature = "parsing") {
-        quote_! {
+        quote! {
             pub fn deserialize<'a, D: ::serde::Deserializer<'a>>(
                 deserializer: D
             ) -> Result<Option<__TimeSerdeType>, D::Error> {
@@ -133,24 +133,24 @@ pub(crate) fn build(
             }
         }
     } else {
-        quote_!()
+        quote!()
     };
 
     let deserialize_option_imports = if cfg!(feature = "parsing") {
-        quote_! {
+        quote! {
             use super::__hygiene::{OptionVisitor, Visitor};
         }
     } else {
-        quote_!()
+        quote!()
     };
 
     let fd_traits = match (cfg!(feature = "formatting"), cfg!(feature = "parsing")) {
         (false, false) => {
             bug!("serde_format_description::build called without formatting or parsing enabled")
         }
-        (false, true) => quote_! { ::time::parsing::Parsable },
-        (true, false) => quote_! { ::time::formatting::Formattable },
-        (true, true) => quote_! { ::time::formatting::Formattable + ::time::parsing::Parsable },
+        (false, true) => quote! { ::time::parsing::Parsable },
+        (true, false) => quote! { ::time::formatting::Formattable },
+        (true, true) => quote! { ::time::formatting::Formattable + ::time::parsing::Parsable },
     };
 
     let hygiene_imports = match (cfg!(feature = "formatting"), cfg!(feature = "parsing")) {
@@ -158,18 +158,18 @@ pub(crate) fn build(
             "`serde_format_description` cannot be enabled without either the `formatting` or \
              `parsing` features"
         ),
-        (false, true) => quote_! { pub use self::__hygiene::deserialize; },
-        (true, false) => quote_! { pub use self::__hygiene::serialize; },
-        (true, true) => quote_! { pub use self::__hygiene::{serialize, deserialize}; },
+        (false, true) => quote! { pub use self::__hygiene::deserialize; },
+        (true, false) => quote! { pub use self::__hygiene::serialize; },
+        (true, true) => quote! { pub use self::__hygiene::{serialize, deserialize}; },
     };
 
     let main_type_import = if version.is_at_most_v2() {
-        quote_! { use ::time::#S(ty) as __TimeSerdeType; }
+        quote! { use ::time::#S(ty) as __TimeSerdeType; }
     } else {
-        quote_! { use #S(ty) as __TimeSerdeType; }
+        quote! { use #S(ty) as __TimeSerdeType; }
     };
 
-    quote_! {
+    quote! {
         #S(visibility) mod #(mod_name) {
             use super::*;
             #S(main_type_import)

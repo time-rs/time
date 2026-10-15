@@ -88,9 +88,9 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Offs
 }
 
 impl ToTokenStream for Offset {
-    fn append_to(self, ts: &mut TokenStream) {
+    fn into_token_stream(self) -> TokenStream {
         // Safety: The parser checks each component's range and applies the same sign to all.
-        quote_append! { ts
+        quote! {
             unsafe {
                 ::time::UtcOffset::__from_hms_unchecked(
                     #(self.hours),

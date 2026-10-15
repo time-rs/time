@@ -155,10 +155,10 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
 }
 
 impl ToTokenStream for Date {
-    fn append_to(self, ts: &mut proc_macro::TokenStream) {
+    fn into_token_stream(self) -> proc_macro::TokenStream {
         // Safety: The parser checks both ranges before constructing `Date`. ISO week conversion
         // also rejects dates beyond the maximum supported year.
-        quote_append! { ts
+        quote! {
             unsafe {
                 ::time::Date::__from_ordinal_date_unchecked(
                     #(self.year),

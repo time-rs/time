@@ -118,10 +118,10 @@ pub(crate) fn parse(tokens: &mut Peekable<token_stream::IntoIter>) -> Result<Tim
 }
 
 impl ToTokenStream for Timestamp {
-    fn append_to(self, ts: &mut proc_macro::TokenStream) {
+    fn into_token_stream(self) -> proc_macro::TokenStream {
         // Safety: The parser checks the seconds range and normalizes the nanoseconds before
         // constructing `Timestamp`.
-        quote_append! { ts
+        quote! {
             unsafe {
                 ::time::Timestamp::__new_unchecked(
                     #(self.seconds),

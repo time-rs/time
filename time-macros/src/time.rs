@@ -161,9 +161,9 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
 }
 
 impl ToTokenStream for Time {
-    fn append_to(self, ts: &mut TokenStream) {
+    fn into_token_stream(self) -> TokenStream {
         // Safety: The parser checks all four components before constructing `Time`.
-        quote_append! { ts
+        quote! {
             unsafe {
                 ::time::Time::__from_hms_nanos_unchecked(
                     #(self.hour),

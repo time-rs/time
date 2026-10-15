@@ -1,145 +1,166 @@
-macro_rules! quote_ {
-    () => (proc_macro::TokenStream::new());
+macro_rules! quote {
     ($($x:tt)*) => {{
         use proc_macro::*;
-        let mut ts = TokenStream::new();
-        let ts_mut = &mut ts;
-        quote_inner!(ts_mut $($x)*);
-        ts
+        quote_inner!([] [] $($x)*)
     }};
 }
 
-macro_rules! quote_append {
-    ($ts:ident $($x:tt)*) => {{
-        use proc_macro::*;
-        quote_inner!($ts $($x)*);
-    }};
-}
-
-macro_rules! quote_group {
-    ({ $($x:tt)* }) => {{
-        use proc_macro::*;
-        TokenTree::Group(Group::new(
-            Delimiter::Brace,
-            quote_!($($x)*)
-        ))
-    }};
-}
-
-macro_rules! sym {
-    ($ts:ident $x:tt $y:tt) => {
-        $ts.extend([
-            TokenTree::from(Punct::new($x, Spacing::Joint)),
-            TokenTree::from(Punct::new($y, Spacing::Alone)),
-        ]);
-    };
-    ($ts:ident $x:tt) => {
-        $ts.extend([TokenTree::from(Punct::new($x, Spacing::Alone))]);
-    };
-}
-
-#[allow(unused_macro_rules)] // Varies by feature flag combination.
 macro_rules! quote_inner {
-    // Base case
-    ($ts:ident) => {};
-
-    // Single or double symbols
-    ($ts:ident :: $($tail:tt)*) => { sym!($ts ':' ':'); quote_inner!($ts $($tail)*); };
-    ($ts:ident : $($tail:tt)*) => { sym!($ts ':'); quote_inner!($ts $($tail)*); };
-    ($ts:ident = $($tail:tt)*) => { sym!($ts '='); quote_inner!($ts $($tail)*); };
-    ($ts:ident ; $($tail:tt)*) => { sym!($ts ';'); quote_inner!($ts $($tail)*); };
-    ($ts:ident , $($tail:tt)*) => { sym!($ts ','); quote_inner!($ts $($tail)*); };
-    ($ts:ident . $($tail:tt)*) => { sym!($ts '.'); quote_inner!($ts $($tail)*); };
-    ($ts:ident & $($tail:tt)*) => { sym!($ts '&'); quote_inner!($ts $($tail)*); };
-    ($ts:ident < $($tail:tt)*) => { sym!($ts '<'); quote_inner!($ts $($tail)*); };
-    ($ts:ident >> $($tail:tt)*) => { sym!($ts '>' '>'); quote_inner!($ts $($tail)*); };
-    ($ts:ident > $($tail:tt)*) => { sym!($ts '>'); quote_inner!($ts $($tail)*); };
-    ($ts:ident -> $($tail:tt)*) => { sym!($ts '-' '>'); quote_inner!($ts $($tail)*); };
-    ($ts:ident ? $($tail:tt)*) => { sym!($ts '?'); quote_inner!($ts $($tail)*); };
-    ($ts:ident ! $($tail:tt)*) => { sym!($ts '!'); quote_inner!($ts $($tail)*); };
-    ($ts:ident | $($tail:tt)*) => { sym!($ts '|'); quote_inner!($ts $($tail)*); };
-    ($ts:ident * $($tail:tt)*) => { sym!($ts '*'); quote_inner!($ts $($tail)*); };
-    ($ts:ident + $($tail:tt)*) => { sym!($ts '+'); quote_inner!($ts $($tail)*); };
-
-    // Identifier
-    ($ts:ident $i:ident $($tail:tt)*) => {
-        $ts.extend([TokenTree::from(Ident::new(
-            &stringify!($i),
-            Span::mixed_site(),
-        ))]);
-        quote_inner!($ts $($tail)*);
+    ([] []) => {
+        TokenStream::new()
+    };
+    ([] [$($tokens:tt)+]) => {
+        TokenStream::from_iter([$($tokens)+])
+    };
+    ([$($streams:tt)+] []) => {
+        TokenStream::from_iter([$($streams)+])
+    };
+    ([$($streams:tt)+] [$($tokens:tt)+]) => {
+        TokenStream::from_iter([
+            $($streams)+
+            TokenStream::from_iter([$($tokens)+])
+        ])
     };
 
-    // Literal
-    ($ts:ident 0 $($tail:tt)*) => {
-        $ts.extend([TokenTree::from(Literal::usize_unsuffixed(0))]);
-        quote_inner!($ts $($tail)*);
+    // Only stream interpolation splits the accumulated token array.
+    ([$($streams:tt)*] [] #S($e:expr) $($tail:tt)*) => {
+        quote_inner!([
+            $($streams)*
+            $crate::to_tokens::ToTokenStream::into_token_stream($e),
+        ] [] $($tail)*)
     };
-    ($ts:ident $l:literal $($tail:tt)*) => {
-        $ts.extend([TokenTree::from(Literal::string(&$l))]);
-        quote_inner!($ts $($tail)*);
+    ([$($streams:tt)*] [$($tokens:tt)+] #S($e:expr) $($tail:tt)*) => {
+        quote_inner!([
+            $($streams)*
+            TokenStream::from_iter([$($tokens)+]),
+            $crate::to_tokens::ToTokenStream::into_token_stream($e),
+        ] [] $($tail)*)
+    };
+    ($streams:tt [$($tokens:tt)*] #($e:expr) $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            $crate::to_tokens::ToTokenTree::into_token_tree($e),
+        ] $($tail)*)
+    };
+    ($streams:tt [$($tokens:tt)*] #[$($inner:tt)*] $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            TokenTree::from(Punct::new('#', Spacing::Alone)),
+            TokenTree::from(Group::new(
+                Delimiter::Bracket,
+                quote_inner!([] [] $($inner)*),
+            )),
+        ] $($tail)*)
     };
 
-    // Lifetime
-    ($ts:ident $l:lifetime $($tail:tt)*) => {
-        $ts.extend([
-            TokenTree::from(
-                Punct::new('\'', Spacing::Joint)
-            ),
+    ($streams:tt [$($tokens:tt)*] :: $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            TokenTree::from(Punct::new(':', Spacing::Joint)),
+            TokenTree::from(Punct::new(':', Spacing::Alone)),
+        ] $($tail)*)
+    };
+    ($streams:tt [$($tokens:tt)*] >> $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            TokenTree::from(Punct::new('>', Spacing::Joint)),
+            TokenTree::from(Punct::new('>', Spacing::Alone)),
+        ] $($tail)*)
+    };
+    ($streams:tt [$($tokens:tt)*] -> $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            TokenTree::from(Punct::new('-', Spacing::Joint)),
+            TokenTree::from(Punct::new('>', Spacing::Alone)),
+        ] $($tail)*)
+    };
+    ($streams:tt [$($tokens:tt)*] $l:lifetime $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            TokenTree::from(Punct::new('\'', Spacing::Joint)),
             TokenTree::from(Ident::new(
-                stringify!($l).trim_start_matches(|c| c == '\''),
+                stringify!($l).trim_start_matches('\''),
                 Span::mixed_site(),
             )),
-        ]);
-        quote_inner!($ts $($tail)*);
+        ] $($tail)*)
     };
 
-    // Attribute
-    ($ts:ident #[$($inner:tt)*] $($tail:tt)*) => {
-        $ts.extend([
-            TokenTree::from(
-                Punct::new('#', Spacing::Alone)
-            ),
-            TokenTree::Group(Group::new(
-                Delimiter::Bracket,
-                quote_!($($inner)*)
-            )),
-        ]);
-        quote_inner!($ts $($tail)*);
+    ($streams:tt [$($tokens:tt)*] $first:tt :: $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            quote_token!($first),
+            TokenTree::from(Punct::new(':', Spacing::Joint)),
+            TokenTree::from(Punct::new(':', Spacing::Alone)),
+        ] $($tail)*)
     };
+    ($streams:tt [$($tokens:tt)*] $first:tt -> $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            quote_token!($first),
+            TokenTree::from(Punct::new('-', Spacing::Joint)),
+            TokenTree::from(Punct::new('>', Spacing::Alone)),
+        ] $($tail)*)
+    };
+    ($streams:tt [$($tokens:tt)*] $first:tt # $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            quote_token!($first),
+        ] # $($tail)*)
+    };
+    ($streams:tt [$($tokens:tt)*] $first:tt $second:tt $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            quote_token!($first),
+            quote_token!($second),
+        ] $($tail)*)
+    };
+    ($streams:tt [$($tokens:tt)*] $token:tt $($tail:tt)*) => {
+        quote_inner!($streams [
+            $($tokens)*
+            quote_token!($token),
+        ] $($tail)*)
+    };
+}
 
-    // Groups
-    ($ts:ident ($($inner:tt)*) $($tail:tt)*) => {
-        $ts.extend([TokenTree::Group(Group::new(
+macro_rules! quote_token {
+    ($i:ident) => {
+        TokenTree::from(Ident::new(stringify!($i), Span::mixed_site()))
+    };
+    (0) => {
+        TokenTree::from(Literal::usize_unsuffixed(0))
+    };
+    ($l:literal) => {
+        TokenTree::from(Literal::string(&$l))
+    };
+    (($($inner:tt)*)) => {
+        TokenTree::from(Group::new(
             Delimiter::Parenthesis,
-            quote_!($($inner)*)
-        ))]);
-        quote_inner!($ts $($tail)*);
+            quote_inner!([] [] $($inner)*),
+        ))
     };
-    ($ts:ident [$($inner:tt)*] $($tail:tt)*) => {
-        $ts.extend([TokenTree::Group(Group::new(
+    ([$($inner:tt)*]) => {
+        TokenTree::from(Group::new(
             Delimiter::Bracket,
-            quote_!($($inner)*)
-        ))]);
-        quote_inner!($ts $($tail)*);
+            quote_inner!([] [] $($inner)*),
+        ))
     };
-    ($ts:ident {$($inner:tt)*} $($tail:tt)*) => {
-        $ts.extend([TokenTree::Group(Group::new(
+    ({$($inner:tt)*}) => {
+        TokenTree::from(Group::new(
             Delimiter::Brace,
-            quote_!($($inner)*)
-        ))]);
-        quote_inner!($ts $($tail)*);
+            quote_inner!([] [] $($inner)*),
+        ))
     };
-
-    // Interpolated values
-    // TokenTree by default
-    ($ts:ident #($e:expr) $($tail:tt)*) => {
-        $ts.extend([$crate::to_tokens::ToTokenTree::into_token_tree($e)]);
-        quote_inner!($ts $($tail)*);
-    };
-    // Allow a TokenStream by request. It's more expensive, so avoid if possible.
-    ($ts:ident #S($e:expr) $($tail:tt)*) => {
-        $crate::to_tokens::ToTokenStream::append_to($e, $ts);
-        quote_inner!($ts $($tail)*);
-    };
+    (:) => { TokenTree::from(Punct::new(':', Spacing::Alone)) };
+    (=) => { TokenTree::from(Punct::new('=', Spacing::Alone)) };
+    (;) => { TokenTree::from(Punct::new(';', Spacing::Alone)) };
+    (,) => { TokenTree::from(Punct::new(',', Spacing::Alone)) };
+    (.) => { TokenTree::from(Punct::new('.', Spacing::Alone)) };
+    (&) => { TokenTree::from(Punct::new('&', Spacing::Alone)) };
+    (<) => { TokenTree::from(Punct::new('<', Spacing::Alone)) };
+    (>) => { TokenTree::from(Punct::new('>', Spacing::Alone)) };
+    (?) => { TokenTree::from(Punct::new('?', Spacing::Alone)) };
+    (!) => { TokenTree::from(Punct::new('!', Spacing::Alone)) };
+    (|) => { TokenTree::from(Punct::new('|', Spacing::Alone)) };
+    (*) => { TokenTree::from(Punct::new('*', Spacing::Alone)) };
+    (+) => { TokenTree::from(Punct::new('+', Spacing::Alone)) };
 }

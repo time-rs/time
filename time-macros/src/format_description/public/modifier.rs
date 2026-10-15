@@ -1,6 +1,6 @@
 use std::num::NonZero;
 
-use proc_macro::{Delimiter, Group, Ident, Span, TokenStream, TokenTree};
+use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 
 use crate::to_tokens::{ToTokenStream, ToTokenTree};
 
@@ -27,20 +27,22 @@ macro_rules! to_tokens {
                 if matches!(($(&$field_name,)*), ($($default,)*)) {
                     return TokenTree::Group(Group::new(
                         Delimiter::None,
-                        quote_! { $struct_name::default() }
+                        quote! { $struct_name::default() }
                     ));
                 }
 
-                let mut tokens = quote_! {
-                    $struct_name::default()
-                };
-                $(
-                    #[allow(clippy::redundant_pattern_matching)]
-                    if !matches!($field_name, $default) {
-                        let method_name = Ident::new(concat!("with_", stringify!($field_name)), Span::mixed_site());
-                        quote_append!(tokens .#(method_name)(#S($field_name)));
-                    }
-                )*
+                let tokens = TokenStream::from_iter([
+                    quote_inner!([] [] $struct_name::default()),
+                    $(
+                        #[allow(clippy::redundant_pattern_matching)]
+                        if !matches!($field_name, $default) {
+                            let method_name = Ident::new(concat!("with_", stringify!($field_name)), Span::mixed_site());
+                            quote_inner!([] [] .#(method_name)(#S($field_name)))
+                        } else {
+                            TokenStream::new()
+                        }
+                    ),*
+                ]);
 
                 TokenTree::Group(Group::new(
                     Delimiter::Brace,
@@ -65,14 +67,12 @@ macro_rules! to_tokens {
         ),+}
 
         impl ToTokenStream for $enum_name {
-            fn append_to(self, ts: &mut TokenStream) {
-                quote_append! { ts
-                    $enum_name::
-                };
+            fn into_token_stream(self) -> TokenStream {
                 let name = match self {
                     $(Self::$variant_name => stringify!($variant_name)),+
                 };
-                ts.extend([TokenTree::Ident(Ident::new(name, Span::mixed_site()))]);
+                let name = Ident::new(name, Span::mixed_site());
+                quote! { $enum_name::#(name) }
             }
         }
     }
@@ -308,9 +308,15 @@ pub(crate) struct Ignore {
 
 impl ToTokenTree for Ignore {
     fn into_token_tree(self) -> TokenTree {
-        quote_group! {{
-            Ignore::count(#(self.count))
-        }}
+        TokenTree::Group(Group::new(
+            Delimiter::None,
+            quote! {
+                // Safety: `self.get()` cannot be zero because `self` is a `NonZero<u16>`.
+                Ignore::count(unsafe {
+                    ::core::num::NonZero::<u16>::new_unchecked(#(self.count.get()))
+                })
+            },
+        ))
     }
 }
 

@@ -4,12 +4,7 @@ use proc_macro::{Group, Ident, Literal, Punct, Span, TokenStream, TokenTree};
 
 /// Turn a type into a [`TokenStream`].
 pub(crate) trait ToTokenStream: Sized {
-    fn append_to(self, ts: &mut TokenStream);
-    fn into_token_stream(self) -> TokenStream {
-        let mut ts = TokenStream::new();
-        self.append_to(&mut ts);
-        ts
-    }
+    fn into_token_stream(self) -> TokenStream;
 }
 
 pub(crate) trait ToTokenTree: Sized {
@@ -17,21 +12,21 @@ pub(crate) trait ToTokenTree: Sized {
 }
 
 impl<T: ToTokenTree> ToTokenStream for T {
-    fn append_to(self, ts: &mut TokenStream) {
-        ts.extend([self.into_token_tree()])
+    fn into_token_stream(self) -> TokenStream {
+        self.into_token_tree().into()
     }
 }
 
 impl ToTokenTree for bool {
     fn into_token_tree(self) -> TokenTree {
         let lit = if self { "true" } else { "false" };
-        TokenTree::Ident(Ident::new(lit, Span::mixed_site()))
+        Ident::new(lit, Span::mixed_site()).into()
     }
 }
 
 impl ToTokenStream for TokenStream {
-    fn append_to(self, ts: &mut TokenStream) {
-        ts.extend(self)
+    fn into_token_stream(self) -> TokenStream {
+        self
     }
 }
 
@@ -47,12 +42,12 @@ impl ToTokenTree for &str {
     }
 }
 
-impl ToTokenTree for NonZero<u16> {
-    fn into_token_tree(self) -> TokenTree {
+impl ToTokenStream for NonZero<u16> {
+    fn into_token_stream(self) -> TokenStream {
         // Safety: `self.get()` cannot be zero because `self` is a `NonZero<u16>`.
-        quote_group! {{
+        quote! {
             unsafe { ::core::num::NonZero::<u16>::new_unchecked(#(self.get())) }
-        }}
+        }
     }
 }
 
@@ -60,7 +55,7 @@ macro_rules! impl_for_tree_types {
     ($($type:ty)*) => {$(
         impl ToTokenTree for $type {
             fn into_token_tree(self) -> TokenTree {
-                TokenTree::from(self)
+                self.into()
             }
         }
     )*};
@@ -71,7 +66,7 @@ macro_rules! impl_for_int {
     ($($type:ty => $method:ident)*) => {$(
         impl ToTokenTree for $type {
             fn into_token_tree(self) -> TokenTree {
-                TokenTree::from(Literal::$method(self))
+                Literal::$method(self).into()
             }
         }
     )*};

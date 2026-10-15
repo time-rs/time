@@ -60,7 +60,7 @@ macro_rules! impl_macros {
             match $name::parse(&mut iter) {
                 Ok(value) => match iter.peek() {
                     Some(tree) => Error::UnexpectedToken { tree: tree.clone() }.to_compile_error(),
-                    None => quote_! { const { #S(value.into_token_stream()) } },
+                    None => quote! { const { #S(value.into_token_stream()) } },
                 },
                 Err(err) => err.to_compile_error(),
             }
@@ -199,11 +199,11 @@ fn parse_format_description_version<const NO_EQUALS_IS_MOD_NAME: bool>(
 fn parse_visibility(iter: &mut PeekableTokenStreamIter) -> Result<TokenStream, Error> {
     let mut visibility = match iter.peek().ok_or(Error::UnexpectedEndOfInput)? {
         pub_ident @ TokenTree::Ident(ident) if ident.to_string() == "pub" => {
-            let visibility = quote_! { #(pub_ident.clone()) };
+            let visibility = quote! { #(pub_ident.clone()) };
             iter.next(); // consume `pub`
             visibility
         }
-        _ => return Ok(quote_! {}),
+        _ => return Ok(quote! {}),
     };
 
     match iter.peek().ok_or(Error::UnexpectedEndOfInput)? {
@@ -225,7 +225,7 @@ fn expand_format_description(item: format_description::public::OwnedFormatItem) 
                 let items = items
                     .iter()
                     .map(|inner_item| {
-                        quote_! {
+                        quote! {
                             #S(format_description::public::OwnedFormatItem {
                                 version: item.version,
                                 inner: inner_item.clone(),
@@ -233,21 +233,21 @@ fn expand_format_description(item: format_description::public::OwnedFormatItem) 
                         }
                     })
                     .collect::<TokenStream>();
-                quote_! {
+                quote! {
                     const {
                         use ::time::format_description::{*, modifier::*};
                         &[#S(items)] as StaticFormatDescription
                     }
                 }
             }
-            _ => quote_! {
+            _ => quote! {
                 const {
                     use ::time::format_description::{*, modifier::*};
                     &[#S(item)] as StaticFormatDescription
                 }
             },
         },
-        FormatDescriptionVersion::V3 => quote_! {
+        FormatDescriptionVersion::V3 => quote! {
             const {
                 use ::time::format_description::__private::*;
                 use ::time::format_description::modifier::*;

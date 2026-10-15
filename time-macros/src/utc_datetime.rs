@@ -50,8 +50,8 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<UtcD
 }
 
 impl ToTokenStream for UtcDateTime {
-    fn append_to(self, ts: &mut TokenStream) {
-        quote_append! { ts
+    fn into_token_stream(self) -> TokenStream {
+        quote! {
             ::time::UtcDateTime::new(
                 #S(self.date),
                 #S(self.time),

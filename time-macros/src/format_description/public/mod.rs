@@ -25,26 +25,26 @@ pub(crate) enum OwnedFormatItemInner {
 }
 
 impl ToTokenStream for OwnedFormatItem {
-    fn append_to(self, ts: &mut TokenStream) {
+    fn into_token_stream(self) -> TokenStream {
         match self.version {
             FormatDescriptionVersion::V1 | FormatDescriptionVersion::V2 => match self.inner {
-                OwnedFormatItemInner::Literal(bytes) => quote_append! { ts
+                OwnedFormatItemInner::Literal(bytes) => quote! {
                     BorrowedFormatItem::Literal(#(Literal::byte_string(bytes.as_ref())))
                 },
-                OwnedFormatItemInner::StringLiteral(string) => quote_append! { ts
+                OwnedFormatItemInner::StringLiteral(string) => quote! {
                     BorrowedFormatItem::StringLiteral(#(string.as_ref()))
                 },
-                OwnedFormatItemInner::Component(component) => quote_append! { ts
+                OwnedFormatItemInner::Component(component) => quote! {
                     BorrowedFormatItem::Component { 0: #S(component) }
                 },
                 OwnedFormatItemInner::Compound(items) => {
                     let items = items
                         .into_iter()
                         .map(|item| {
-                            quote_! { #S(Self { version: self.version, inner: item }), }
+                            quote! { #S(Self { version: self.version, inner: item }), }
                         })
                         .collect::<TokenStream>();
-                    quote_append! { ts
+                    quote! {
                         BorrowedFormatItem::Compound { 0: &[#S(items)] }
                     }
                 }
@@ -52,7 +52,7 @@ impl ToTokenStream for OwnedFormatItem {
                     if !format {
                         bug!("v1 and v2 format descriptions must format optional items")
                     }
-                    quote_append! { ts
+                    quote! {
                         BorrowedFormatItem::Optional {
                             0: &#S(Self { version: self.version, inner: *item })
                         }
@@ -62,10 +62,10 @@ impl ToTokenStream for OwnedFormatItem {
                     let items = items
                         .into_iter()
                         .map(|item| {
-                            quote_! { #S(Self { version: self.version, inner: item }), }
+                            quote! { #S(Self { version: self.version, inner: item }), }
                         })
                         .collect::<TokenStream>();
-                    quote_append! { ts
+                    quote! {
                         BorrowedFormatItem::First { 0: &[#S(items)] }
                     }
                 }
@@ -74,37 +74,25 @@ impl ToTokenStream for OwnedFormatItem {
                 OwnedFormatItemInner::Literal(_) => {
                     bug!("v3 format descriptions should never have non-UTF8 literals")
                 }
-                OwnedFormatItemInner::StringLiteral(string) => quote_append! { ts
+                OwnedFormatItemInner::StringLiteral(string) => quote! {
                     FormatDescriptionV3Inner::BorrowedLiteral(#(string.as_ref()))
                 },
                 OwnedFormatItemInner::Component(component) => {
-                    // v3 format descriptions have components directly on the item, not as a
-                    // sub-enum. Swap out the name of the enum that is being constructed.
-                    let tokens = component.into_token_stream();
-                    let mut iter = tokens.into_iter().peekable();
-                    if let Some(first) = iter.peek_mut() {
-                        *first = proc_macro::TokenTree::Ident(proc_macro::Ident::new(
-                            "FormatDescriptionV3Inner",
-                            proc_macro::Span::mixed_site(),
-                        ));
-                    } else {
-                        bug!("component should have at least one token")
-                    }
-                    ts.extend(iter);
+                    component.into_token_stream_with_enum_name("FormatDescriptionV3Inner")
                 }
                 OwnedFormatItemInner::Compound(items) => {
                     let items = items
                         .into_iter()
                         .map(|item| {
-                            quote_! { #S(Self { version: self.version, inner: item }), }
+                            quote! { #S(Self { version: self.version, inner: item }), }
                         })
                         .collect::<TokenStream>();
-                    quote_append! { ts
+                    quote! {
                         FormatDescriptionV3Inner::BorrowedCompound(const { &[#S(items)] })
                     }
                 }
                 OwnedFormatItemInner::Optional { format, item } => {
-                    quote_append! { ts
+                    quote! {
                         FormatDescriptionV3Inner::BorrowedOptional {
                             format: #S(format),
                             item: &#S(Self { version: self.version, inner: *item })
@@ -115,10 +103,10 @@ impl ToTokenStream for OwnedFormatItem {
                     let items = items
                         .into_iter()
                         .map(|item| {
-                            quote_! { #S(Self { version: self.version, inner: item }), }
+                            quote! { #S(Self { version: self.version, inner: item }), }
                         })
                         .collect::<TokenStream>();
-                    quote_append! { ts
+                    quote! {
                         FormatDescriptionV3Inner::BorrowedFirst(const { &[#S(items)] })
                     }
                 }

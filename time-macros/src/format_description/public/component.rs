@@ -12,20 +12,24 @@ macro_rules! declare_component {
         )*}
 
         impl ToTokenStream for Component {
-            fn append_to(self, ts: &mut TokenStream) {
-                let mut mts = TokenStream::new();
+            fn into_token_stream(self) -> TokenStream {
+                self.into_token_stream_with_enum_name("Component")
+            }
+        }
 
-                let component = match self {$(
+        impl Component {
+            pub(crate) fn into_token_stream_with_enum_name(self, enum_name: &str) -> TokenStream {
+                let (component, modifier) = match self {$(
                     $(#[cfg($cfg_inner)])*
                     Self::$name(modifier) => {
-                        modifier.append_to(&mut mts);
-                        stringify!($name)
+                        (stringify!($name), modifier.into_token_stream())
                     }
                 )*};
+                let enum_name = Ident::new(enum_name, Span::mixed_site());
                 let component = Ident::new(component, Span::mixed_site());
 
-                quote_append! { ts
-                    Component::#(component)(#S(mts))
+                quote! {
+                    #(enum_name)::#(component)(#S(modifier))
                 }
             }
         }
