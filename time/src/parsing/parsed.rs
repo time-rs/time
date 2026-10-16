@@ -132,13 +132,13 @@ impl sealed::AnyFormatItem for OwnedFormatItem {
 #[derive(Debug, Clone, Copy)]
 pub struct Parsed {
     /// Calendar year.
-    year: Option_ri32<{ MIN_YEAR }, { MAX_YEAR }>,
+    year: Option_ri32<MIN_YEAR, MAX_YEAR>,
     /// All digits except the last two of the calendar year.
     year_century: Option_ri16<{ (MIN_YEAR / 100) as i16 }, { (MAX_YEAR / 100) as i16 }>,
     /// The last two digits of the calendar year.
     year_last_two: Option_ru8<0, 99>,
     /// Year of the [ISO week date](https://en.wikipedia.org/wiki/ISO_week_date).
-    iso_year: Option_ri32<{ MIN_YEAR }, { MAX_YEAR }>,
+    iso_year: Option_ri32<MIN_YEAR, MAX_YEAR>,
     /// All digits except the last two of the ISO week year.
     iso_year_century: Option_ri16<{ (MIN_YEAR / 100) as i16 }, { (MAX_YEAR / 100) as i16 }>,
     /// The last two digits of the ISO week year.
