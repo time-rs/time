@@ -430,12 +430,16 @@ impl Date {
         (self.value.get() & 0x1FF) as u16
     }
 
-    /// Get the ISO 8601 year and week number.
+    /// Get the ISO 8601 year and week number, given the day of the week of `self` is already known.
+    ///
+    /// A `Weekday` is passed as a parameter in order to allow the caller to precompute the value
+    /// and cache it as necessary. If the value is not already known, it can be calculated with
+    /// `self.weekday()`.
     #[inline]
-    pub(crate) const fn iso_year_week(self) -> (i32, u8) {
+    pub(crate) const fn iso_year_week(self, weekday: Weekday) -> (i32, u8) {
         let (year, ordinal) = self.to_ordinal_date();
 
-        match ((ordinal + 10 - self.weekday().number_from_monday() as u16) / 7) as u8 {
+        match ((ordinal + 10 - weekday.number_from_monday() as u16) / 7) as u8 {
             0 => (year - 1, weeks_in_year(year - 1)),
             53 if weeks_in_year(year) == 52 => (year + 1, 1),
             week => (year, week),
@@ -456,7 +460,7 @@ impl Date {
     /// ```
     #[inline]
     pub const fn iso_week(self) -> u8 {
-        self.iso_year_week().1
+        self.iso_year_week(self.weekday()).1
     }
 
     /// Get the week number where week 1 begins on the first Sunday.

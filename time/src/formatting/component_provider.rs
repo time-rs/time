@@ -21,6 +21,7 @@ pub(crate) struct DateState {
     month: Option<Month>,
     iso_week: OptionIsoWeekNumber,
     iso_year: OptionYear,
+    weekday: Option<Weekday>,
 }
 
 /// State used by `Timestamp` to cache computed date and time values.
@@ -191,7 +192,7 @@ impl ComponentProvider for Date {
             return day;
         }
 
-        let (_, month, day) = (*self).to_calendar_date();
+        let (_, month, day) = self.to_calendar_date();
         // Safety: `day` is guaranteed to be in range.
         let day = unsafe { Day::new_unchecked(day) };
         state.month = Some(month);
@@ -201,7 +202,16 @@ impl ComponentProvider for Date {
 
     #[inline]
     fn month(&self, state: &mut Self::State) -> Month {
-        *state.month.get_or_insert_with(|| (*self).month())
+        if let Some(month) = state.month {
+            return month;
+        }
+
+        let (_, month, day) = self.to_calendar_date();
+        // Safety: `day` is guaranteed to be in range.
+        let day = unsafe { Day::new_unchecked(day) };
+        state.month = Some(month);
+        state.day = OptionDay::Some(day);
+        month
     }
 
     #[inline]
@@ -211,8 +221,14 @@ impl ComponentProvider for Date {
     }
 
     #[inline]
-    fn weekday(&self, _: &mut Self::State) -> Weekday {
-        (*self).weekday()
+    fn weekday(&self, state: &mut Self::State) -> Weekday {
+        if let Some(weekday) = state.weekday {
+            return weekday;
+        }
+
+        let weekday = (*self).weekday();
+        state.weekday = Some(weekday);
+        weekday
     }
 
     #[inline]
@@ -221,7 +237,8 @@ impl ComponentProvider for Date {
             return week;
         }
 
-        let (iso_year, iso_week) = (*self).iso_year_week();
+        let weekday = self.weekday(state);
+        let (iso_year, iso_week) = self.iso_year_week(weekday);
         // Safety: `iso_week` is guaranteed to be non-zero.
         let iso_week = unsafe { IsoWeekNumber::new_unchecked(iso_week) };
         // Safety: `iso_year` is guaranteed to be in range.
@@ -254,7 +271,8 @@ impl ComponentProvider for Date {
             return iso_year;
         }
 
-        let (iso_year, iso_week) = (*self).iso_year_week();
+        let weekday = self.weekday(state);
+        let (iso_year, iso_week) = self.iso_year_week(weekday);
         // Safety: `iso_year_week` returns a valid ISO year.
         let iso_year = unsafe { Year::new_unchecked(iso_year) };
         state.iso_year = OptionYear::Some(iso_year);
@@ -303,22 +321,22 @@ impl ComponentProvider for UtcOffset {
 
     #[inline]
     fn offset_is_utc(&self, _state: &mut Self::State) -> bool {
-        (*self).is_utc()
+        self.is_utc()
     }
 
     #[inline]
     fn offset_hour(&self, _: &mut Self::State) -> OffsetHours {
-        (*self).as_hms_ranged().0
+        self.as_hms_ranged().0
     }
 
     #[inline]
     fn offset_minute(&self, _: &mut Self::State) -> OffsetMinutes {
-        (*self).as_hms_ranged().1
+        self.as_hms_ranged().1
     }
 
     #[inline]
     fn offset_second(&self, _: &mut Self::State) -> OffsetSeconds {
-        (*self).as_hms_ranged().2
+        self.as_hms_ranged().2
     }
 }
 
@@ -376,7 +394,7 @@ impl ComponentProvider for UtcDateTime {
 
     #[inline]
     fn unix_timestamp_seconds(&self, _: &mut Self::State) -> i64 {
-        (*self).unix_timestamp()
+        self.unix_timestamp()
     }
 
     #[inline]
@@ -391,7 +409,7 @@ impl ComponentProvider for UtcDateTime {
 
     #[inline]
     fn unix_timestamp_nanoseconds(&self, _: &mut Self::State) -> i128 {
-        (*self).unix_timestamp_nanos()
+        self.unix_timestamp_nanos()
     }
 }
 
@@ -431,22 +449,22 @@ impl ComponentProvider for OffsetDateTime {
 
     #[inline]
     fn unix_timestamp_seconds(&self, _: &mut Self::State) -> i64 {
-        (*self).unix_timestamp()
+        self.unix_timestamp()
     }
 
     #[inline]
     fn unix_timestamp_milliseconds(&self, _: &mut Self::State) -> i64 {
-        ((*self).unix_timestamp_nanos() / 1_000_000) as i64
+        (self.unix_timestamp_nanos() / 1_000_000) as i64
     }
 
     #[inline]
     fn unix_timestamp_microseconds(&self, _: &mut Self::State) -> i128 {
-        (*self).unix_timestamp_nanos() / 1_000
+        self.unix_timestamp_nanos() / 1_000
     }
 
     #[inline]
     fn unix_timestamp_nanoseconds(&self, _: &mut Self::State) -> i128 {
-        (*self).unix_timestamp_nanos()
+        self.unix_timestamp_nanos()
     }
 }
 
