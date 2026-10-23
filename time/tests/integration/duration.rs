@@ -560,6 +560,11 @@ fn saturating_sub(
     SignedDuration::MAX
 )]
 #[case(SignedDuration::new(1_844_674_407_370_955_161, 800_000_000), -5, SignedDuration::MIN)]
+#[case(
+    SignedDuration::new(-1_844_674_407_370_955_161, -600_000_000),
+    -5,
+    SignedDuration::MAX
+)]
 fn saturating_mul(
     #[case] duration: SignedDuration,
     #[case] rhs: i32,

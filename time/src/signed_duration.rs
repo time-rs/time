@@ -1299,7 +1299,7 @@ impl SignedDuration {
         }
         let (seconds, overflow2) = seconds.overflowing_add(extra_secs);
         if overflow2 {
-            if self.seconds > 0 && rhs > 0 {
+            if self.seconds > 0 && rhs > 0 || self.seconds < 0 && rhs < 0 {
                 return Self::MAX;
             }
             return Self::MIN;
