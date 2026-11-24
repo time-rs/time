@@ -492,6 +492,8 @@ impl SignedDuration {
     /// assert_eq!(SignedDuration::weeks(1), 604_800.seconds());
     /// ```
     ///
+    /// To return `None` on overflow instead of panicking, use [`Self::checked_weeks`].
+    ///
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -505,6 +507,23 @@ impl SignedDuration {
         )
     }
 
+    /// Create a new `SignedDuration` with the given number of weeks, returning `None` if an
+    /// overflow occurs.
+    ///
+    /// ```rust
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::checked_weeks(1), Some(604_800.seconds()));
+    /// assert_eq!(SignedDuration::checked_weeks(-1), Some((-604_800).seconds()));
+    /// assert_eq!(SignedDuration::checked_weeks(i64::MAX), None);
+    /// assert_eq!(SignedDuration::checked_weeks(i64::MIN), None);
+    /// ```
+    #[inline]
+    pub const fn checked_weeks(weeks: i64) -> Option<Self> {
+        Some(Self::seconds(const_try_opt!(
+            weeks.checked_mul(Second::per_t(Week))
+        )))
+    }
+
     /// Create a new `SignedDuration` with the given number of days. Equivalent to
     /// `SignedDuration::seconds(days * 86_400)`.
     ///
@@ -512,6 +531,8 @@ impl SignedDuration {
     /// # use time::{SignedDuration, ext::NumericalDuration};
     /// assert_eq!(SignedDuration::days(1), 86_400.seconds());
     /// ```
+    ///
+    /// To return `None` on overflow instead of panicking, use [`Self::checked_days`].
     ///
     /// # Panics
     ///
@@ -525,6 +546,23 @@ impl SignedDuration {
         )
     }
 
+    /// Create a new `SignedDuration` with the given number of days, returning `None` if an
+    /// overflow occurs.
+    ///
+    /// ```rust
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::checked_days(1), Some(86_400.seconds()));
+    /// assert_eq!(SignedDuration::checked_days(-1), Some((-86_400).seconds()));
+    /// assert_eq!(SignedDuration::checked_days(i64::MAX), None);
+    /// assert_eq!(SignedDuration::checked_days(i64::MIN), None);
+    /// ```
+    #[inline]
+    pub const fn checked_days(days: i64) -> Option<Self> {
+        Some(Self::seconds(const_try_opt!(
+            days.checked_mul(Second::per_t(Day))
+        )))
+    }
+
     /// Create a new `SignedDuration` with the given number of hours. Equivalent to
     /// `SignedDuration::seconds(hours * 3_600)`.
     ///
@@ -532,6 +570,8 @@ impl SignedDuration {
     /// # use time::{SignedDuration, ext::NumericalDuration};
     /// assert_eq!(SignedDuration::hours(1), 3_600.seconds());
     /// ```
+    ///
+    /// To return `None` on overflow instead of panicking, use [`Self::checked_hours`].
     ///
     /// # Panics
     ///
@@ -546,6 +586,23 @@ impl SignedDuration {
         )
     }
 
+    /// Create a new `SignedDuration` with the given number of hours, returning `None` if an
+    /// overflow occurs.
+    ///
+    /// ```rust
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::checked_hours(1), Some(3_600.seconds()));
+    /// assert_eq!(SignedDuration::checked_hours(-1), Some((-3_600).seconds()));
+    /// assert_eq!(SignedDuration::checked_hours(i64::MAX), None);
+    /// assert_eq!(SignedDuration::checked_hours(i64::MIN), None);
+    /// ```
+    #[inline]
+    pub const fn checked_hours(hours: i64) -> Option<Self> {
+        Some(Self::seconds(const_try_opt!(
+            hours.checked_mul(Second::per_t(Hour))
+        )))
+    }
+
     /// Create a new `SignedDuration` with the given number of minutes. Equivalent to
     /// `SignedDuration::seconds(minutes * 60)`.
     ///
@@ -553,6 +610,8 @@ impl SignedDuration {
     /// # use time::{SignedDuration, ext::NumericalDuration};
     /// assert_eq!(SignedDuration::minutes(1), 60.seconds());
     /// ```
+    ///
+    /// To return `None` on overflow instead of panicking, use [`Self::checked_minutes`].
     ///
     /// # Panics
     ///
@@ -565,6 +624,23 @@ impl SignedDuration {
                 .checked_mul(Second::per_t(Minute))
                 .expect("overflow constructing `time::SignedDuration`"),
         )
+    }
+
+    /// Create a new `SignedDuration` with the given number of minutes, returning `None` if an
+    /// overflow occurs.
+    ///
+    /// ```rust
+    /// # use time::{SignedDuration, ext::NumericalDuration};
+    /// assert_eq!(SignedDuration::checked_minutes(1), Some(60.seconds()));
+    /// assert_eq!(SignedDuration::checked_minutes(-1), Some((-60).seconds()));
+    /// assert_eq!(SignedDuration::checked_minutes(i64::MAX), None);
+    /// assert_eq!(SignedDuration::checked_minutes(i64::MIN), None);
+    /// ```
+    #[inline]
+    pub const fn checked_minutes(minutes: i64) -> Option<Self> {
+        Some(Self::seconds(const_try_opt!(
+            minutes.checked_mul(Second::per_t(Minute))
+        )))
     }
 
     /// Create a new `SignedDuration` with the given number of seconds.

@@ -186,6 +186,52 @@ fn minutes(#[case] minutes_: i64, #[case] expected: i64) {
 }
 
 #[rstest]
+#[case(SignedDuration::checked_weeks, 604_800)]
+#[case(SignedDuration::checked_days, 86_400)]
+#[case(SignedDuration::checked_hours, 3_600)]
+#[case(SignedDuration::checked_minutes, 60)]
+fn checked_units(
+    #[case] constructor: fn(i64) -> Option<SignedDuration>,
+    #[case] seconds_per_unit: i64,
+) {
+    for input in [
+        0,
+        1,
+        -1,
+        i64::MAX / seconds_per_unit,
+        i64::MAX / seconds_per_unit + 1,
+        i64::MIN / seconds_per_unit,
+        i64::MIN / seconds_per_unit - 1,
+        i64::MAX,
+        i64::MIN,
+    ] {
+        let seconds = i128::from(input) * i128::from(seconds_per_unit);
+        let expected = i64::try_from(seconds).ok().map(SignedDuration::seconds);
+        assert_eq!(constructor(input), expected, "input: {input}");
+    }
+}
+
+#[rstest]
+fn checked_units_const() {
+    const WEEK: Option<SignedDuration> = SignedDuration::checked_weeks(1);
+    const DAY: Option<SignedDuration> = SignedDuration::checked_days(-1);
+    const HOUR: Option<SignedDuration> = SignedDuration::checked_hours(0);
+    const MINUTE: Option<SignedDuration> = SignedDuration::checked_minutes(1);
+    const OVERFLOW: [Option<SignedDuration>; 4] = [
+        SignedDuration::checked_weeks(i64::MAX),
+        SignedDuration::checked_days(i64::MIN),
+        SignedDuration::checked_hours(i64::MAX),
+        SignedDuration::checked_minutes(i64::MIN),
+    ];
+
+    assert_eq!(WEEK, Some(7.days()));
+    assert_eq!(DAY, Some((-24).hours()));
+    assert_eq!(HOUR, Some(SignedDuration::ZERO));
+    assert_eq!(MINUTE, Some(60.seconds()));
+    assert_eq!(OVERFLOW, [None; 4]);
+}
+
+#[rstest]
 #[case(i64::MAX)]
 #[case(i64::MIN)]
 #[should_panic]
